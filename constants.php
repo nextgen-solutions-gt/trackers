@@ -3,12 +3,12 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2020, kinerity, https://www.layer-3.org/
+ * @copyright (c) 2026 nextgen <http://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
-namespace kinerity\trackers;
+namespace nextgen\trackers;
 
 /**
  * Trackers constants

@@ -1,0 +1,61 @@
+{% include 'overall_header.html' %}
+
+<h2 class="posting-title">{{ L_POSTING_TITLE }}</h2>
+
+<form id="postform" method="post" action="{{ U_ACTION }}">
+    <input type="hidden" name="t" value="{{ TRACKER_ID }}" />
+    <input type="hidden" name="p" value="{{ PROJECT_ID }}" />
+    <input type="hidden" name="ticket" value="{{ TICKET_ID }}" />
+    <input type="hidden" name="tracker_edit_id" value="{{ POST_ID }}" />
+    <input type="hidden" name="mode" value="{% if S_EDIT_POST %}edit{% elseif TICKET_ID %}reply{% else %}post{% endif %}" />
+
+    <div class="panel" id="postingbox">
+        <div class="inner">
+            <fieldset class="fields1">
+                {% if S_NEW_TICKET or S_FIRST_POST %}
+                <dl style="clear: left;">
+                    <dt><label for="subject">{{ lang('TITLE') }}{{ lang('COLON') }}</label></dt>
+                    <dd><input type="text" name="subject" id="subject" size="45" maxlength="120" class="inputbox autowidth" value="{{ SUBJECT }}" required /></dd>
+                </dl>
+                
+                <dl>
+                    <dt><label for="severity">{{ lang('SEVERITY') }}{{ lang('COLON') }}</label></dt>
+                    <dd>
+                        <select name="severity" id="severity">
+                            {% for sev in loops.severities %}
+                                <option value="{{ sev.ID }}"{% if sev.ID == SEVERITY_ID %} selected="selected"{% endif %}>{{ sev.NAME }}</option>
+                            {% endfor %}
+                        </select>
+                    </dd>
+                </dl>
+
+                <dl>
+                    <dt><label for="private">{{ lang('PRIVATE') }}{{ lang('COLON') }}</label></dt>
+                    <dd>
+                        <label><input type="radio" name="private" value="1" {% if S_PRIVATE %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+                        <label><input type="radio" name="private" value="0" {% if not S_PRIVATE %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+                    </dd>
+                </dl>
+                {% endif %}
+
+                {% include 'posting_buttons.html' %}
+
+                <div id="message-box" class="message-box">
+                    <textarea name="message" id="message" rows="15" cols="76" class="inputbox" required placeholder="{{ lang('MESSAGE_BODY_EXPLAIN') }}">{{ MESSAGE }}</textarea>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+    <div class="panel bg2">
+        <div class="inner">
+            <fieldset class="submit-buttons">
+                {{ S_FORM_TOKEN }}
+                <input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
+                <a href="#" onclick="history.go(-1); return false;" class="button2">{{ lang('CANCEL') }}</a>
+            </fieldset>
+        </div>
+    </div>
+</form>
+
+{% include 'overall_footer.html' %}

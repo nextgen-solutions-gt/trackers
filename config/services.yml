@@ -1,9 +1,13 @@
 imports:
     - { resource: tables.yml }
 
+# Definición de variables/strings globales
+parameters:
+    nextgen.trackers.tables.prefix: 'phpbb_trackers_'
+
 services:
-    kinerity.trackers.functions:
-        class: kinerity\trackers\functions
+    nextgen.trackers.functions:
+        class: nextgen\trackers\functions
         arguments:
             - '@auth'
             - '@config'
@@ -15,27 +19,38 @@ services:
             - '@template'
             - '@user'
             - '%core.php_ext%'
-            - '%tables%'
+            - '%nextgen.trackers.tables.prefix%'
 
-    kinerity.trackers.controller.main:
-        class: kinerity\trackers\controller\main_controller
+    nextgen.trackers.controller:
+        class: nextgen\trackers\controller\main_controller
         arguments:
-            - '@service_container'
+            - '@auth'
+            - '@config'
+            - '@content.visibility'
+            - '@controller.helper'
+            - '@dbal.conn'
             - '@language'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@service_container'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+            - '%nextgen.trackers.tables.prefix%'
 
-    kinerity.trackers.listener:
-        class: kinerity\trackers\event\main_listener
+    nextgen.trackers.listener:
+        class: nextgen\trackers\event\main_listener
         arguments:
             - '@dbal.conn'
             - '@language'
             - '@controller.helper'
             - '@template'
-            - '%tables%'
+            - '%core.table_prefix%'
         tags:
             - { name: event.listener }
 
-    kinerity.trackers.viewtracker:
-        class: kinerity\trackers\operators\viewtracker
+    nextgen.trackers.viewtracker:
+        class: nextgen\trackers\operators\viewtracker
         arguments:
             - '@service_container'
             - '@language'
@@ -44,8 +59,8 @@ services:
             - '@template'
             - '@user'
 
-    kinerity.trackers.viewproject:
-        class: kinerity\trackers\operators\viewproject
+    nextgen.trackers.viewproject:
+        class: nextgen\trackers\operators\viewproject
         arguments:
             - '@config'
             - '@service_container'
@@ -55,8 +70,8 @@ services:
             - '@template'
             - '@user'
 
-    kinerity.trackers.viewticket:
-        class: kinerity\trackers\operators\viewticket
+    nextgen.trackers.viewticket:
+        class: nextgen\trackers\operators\viewticket
         arguments:
             - '@auth'
             - '@config'
@@ -67,8 +82,8 @@ services:
             - '@template'
             - '@user'
 
-    kinerity.trackers.statistics:
-        class: kinerity\trackers\operators\statistics
+    nextgen.trackers.statistics:
+        class: nextgen\trackers\operators\statistics
         arguments:
             - '@config'
             - '@service_container'
@@ -79,3 +94,35 @@ services:
             - '@template'
             - '@user'
             - '%tables%'
+
+    nextgen.trackers.posting:
+        class: nextgen\trackers\operators\posting
+        arguments:
+            - '@auth'
+            - '@service_container'
+            - '@language'
+            - '@controller.helper'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '%core.table_prefix%'
+            
+    nextgen.trackers.notification.type.ticket_assigned:
+        class: nextgen\trackers\notification\type\ticket_assigned
+        shared: false
+        parent: notification.type.base
+        calls:
+            - [set_user_loader, ['@user_loader']]
+            - [set_controller_helper, ['@controller.helper']]
+        tags:
+            - { name: notification.type }
+            
+    nextgen.trackers.notification.type.ticket_reply:
+        class: nextgen\trackers\notification\type\ticket_reply
+        shared: false
+        parent: notification.type.base
+        calls:
+            - [set_user_loader, ['@user_loader']]
+            - [set_controller_helper, ['@controller.helper']]
+        tags:
+            - { name: notification.type }        

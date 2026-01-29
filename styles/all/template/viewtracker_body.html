@@ -1,0 +1,74 @@
+{% INCLUDECSS '@nextgen_trackers/common.css' %}
+{% include 'overall_header.html' %}
+
+<div class="extras">
+	<div class="mini-panel">
+		<div class="inner">
+			<h3>{{ TRACKER_NAME }}</h3>
+			<ul class="menu">
+				<li><a href="{{ U_STATISTICS }}"><i class="icon fa-bar-chart fa-fw" aria-hidden="true"></i> {{ lang('STATISTICS') }}</a></li>
+			</ul>
+		</div>
+	</div>
+</div>
+
+<div class="main">
+	<h2 class="forum-title">
+		{% if S_TRACKER_PRIVATE %}<i class="icon fa-lock fa-fw" aria-hidden="true" title="{{ lang('TRACKER_PRIVATE') }}"></i> {% endif %}
+		{{ TRACKER_NAME }}
+	</h2>
+
+	<p>{{ lang('TRACKER_EXPLAIN') }}</p>
+	
+	{% if S_TRACKER_PRIVATE %}
+		<div class="rules">
+			<div class="inner">
+				<strong>{{ lang('TRACKER_PRIVATE') }}</strong>: {{ lang('TRACKER_PRIVATE_EXPLAIN')|default('Este tracker es privado. Solo los miembros del equipo pueden ver todos los tickets.') }}
+			</div>
+		</div>
+	{% endif %}
+
+	<div class="forabg">
+		<div class="inner">
+			<table class="table1" cellspacing="0">
+				<thead>
+					<tr>
+						<th class="name" style="width: 30%;">{{ lang('PROJECT') }}</th>
+						<th class="name">{{ lang('DESCRIPTION') }}</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% if loops.projects|length %}
+					{% for project in loops.projects %}
+					<tr class="{% if project.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}">
+						<td class="name">
+							<a href="{{ project.U_VIEWPROJECT }}" class="topictitle">{{ project.PROJECT_NAME }}</a>
+						</td>
+						<td class="name">
+							<div class="project-description">{{ project.DESCRIPTION }}</div>
+						</td>
+					</tr>
+					{% endfor %}
+				{% else %}
+					<tr class="bg1">
+						<td colspan="2" class="error" style="text-align: center; padding: 20px;">
+							<i class="icon fa-exclamation-triangle fa-fw" aria-hidden="true"></i> {{ lang('NO_PROJECTS') }}
+						</td>
+					</tr>
+				{% endif %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	{# Botón para volver al índice del tracker si es necesario #}
+	<div class="action-bar bottom">
+		<div class="pagination">
+			<a href="{{ U_INDEX }}" class="arrow-left" accesskey="r">
+				<i class="icon fa-angle-left fa-fw icon-black" aria-hidden="true"></i><span>{{ lang('RETURN_INDEX') }}</span>
+			</a>
+		</div>
+	</div>
+</div>
+
+{% include 'overall_footer.html' %}

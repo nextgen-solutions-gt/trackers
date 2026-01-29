@@ -1,0 +1,157 @@
+{% include 'overall_header.html' %}
+
+<a id="main" name="main"></a>
+
+<h1>{{ lang('ACP_TRACKERS_TITLE') }}</h1>
+<p>{{ lang('ACP_TRACKERS_EXPLAIN') }}</p>
+
+{% if S_MODE_SETTINGS %}
+	<form id="acp_trackers_settings" method="post" action="{{ U_ACTION }}">
+		<fieldset>
+			<legend>{{ lang('ACP_TRACKERS_SETTINGS') }}</legend>
+			<dl>
+				<dt><label for="trackers_enable">{{ lang('TRACKERS_ENABLE') }}{{ lang('COLON') }}</label><br /><span>{{ lang('TRACKERS_ENABLE_EXPLAIN') }}</span></dt>
+				<dd>
+					<label><input type="radio" class="radio" name="trackers_enable" value="1" {% if TRACKERS_ENABLE %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+					<label><input type="radio" class="radio" name="trackers_enable" value="0" {% if not TRACKERS_ENABLE %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+				</dd>
+			</dl>
+			<dl>
+				<dt><label for="trackers_items_per_page">{{ lang('ITEMS_PER_PAGE') }}{{ lang('COLON') }}</label><br /><span>{{ lang('ITEMS_PER_PAGE_EXPLAIN') }}</span></dt>
+				<dd><input type="number" id="trackers_items_per_page" name="trackers_items_per_page" value="{{ TRACKERS_PER_PAGE }}" min="1" max="50" /></dd>
+			</dl>
+
+			<p class="submit-buttons">
+				<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />&nbsp;
+				<input class="button2" type="reset" id="reset" name="reset" value="{{ lang('RESET') }}" />
+				{{ S_FORM_TOKEN }}
+			</p>
+		</fieldset>
+	</form>
+
+{% elseif S_EDIT_PROJECT or S_EDIT_ITEM %}
+    <form id="acp_trackers_edit" method="post" action="{{ U_ACTION }}">
+        <fieldset>
+            <legend>{{ L_TITLE }}</legend>
+
+            {% if S_EDIT_PROJECT %}
+                <dl>
+                    <dt><label for="tracker_id">{{ lang('TRACKER_CATEGORY') }}{{ lang('COLON') }}</label></dt>
+                    <dd>
+                        <select id="tracker_id" name="tracker_id">
+                            {% for tracker in trackers %}
+                                <option value="{{ tracker.ID }}"{% if tracker.S_SELECT %} selected="selected"{% endif %}>{{ tracker.NAME }}</option>
+                            {% endfor %}
+                        </select>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt><label for="project_name">{{ lang('PROJECT_NAME') }}{{ lang('COLON') }}</label></dt>
+                    <dd><input type="text" id="project_name" name="project_name" value="{{ PROJECT_NAME }}" maxlength="255" class="inputbox" /></dd>
+                </dl>
+                <dl>
+                    <dt><label for="project_desc">{{ lang('DESCRIPTION') }}{{ lang('COLON') }}</label></dt>
+                    <dd><textarea id="project_desc" name="project_desc" rows="3" cols="40">{{ PROJECT_DESC }}</textarea></dd>
+                </dl>
+                <dl>
+                    <dt><label for="project_note">{{ lang('PROJECT_NOTE') }}{{ lang('COLON') }}</label></dt>
+                    <dd><textarea id="project_note" name="project_note" rows="3" cols="40">{{ PROJECT_NOTE }}</textarea></dd>
+                </dl>
+                <dl>
+                    <dt><label for="project_private">{{ lang('PRIVATE') }}{{ lang('COLON') }}</label></dt>
+                    <dd>
+                        <label><input type="radio" class="radio" name="project_private" value="1" {% if S_PROJECT_PRIVATE %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+                        <label><input type="radio" class="radio" name="project_private" value="0" {% if not S_PROJECT_PRIVATE %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+                    </dd>
+                </dl>
+            {% endif %}
+
+            {% if S_EDIT_ITEM %}
+                <dl>
+                    <dt><label for="name">{{ lang('NAME') }}{{ lang('COLON') }}</label></dt>
+                    <dd><input type="text" id="name" name="name" value="{{ ITEM_NAME }}" maxlength="255" class="inputbox" /></dd>
+                </dl>
+            {% endif %}
+            
+            <p class="submit-buttons">
+                <input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />&nbsp;
+                <input class="button2" type="submit" id="cancel" name="cancel" value="{{ lang('CANCEL') }}" />
+                {{ S_FORM_TOKEN }}
+            </p>
+        </fieldset>
+    </form>
+
+{% elseif S_MODE_PROJECTS %}
+    <form id="acp_trackers_list" method="post" action="{{ U_ACTION }}">
+        <fieldset>
+            <legend>{{ lang('MANAGE_PROJECTS') }}</legend>
+            <table class="table1">
+                <thead>
+                    <tr>
+                        <th>{{ lang('PROJECT_NAME') }}</th>
+                        <th>{{ lang('TRACKER') }}</th>
+                        <th>{{ lang('ACTION') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for project in projects %}
+                    <tr>
+                        <td><strong>{{ project.NAME }}</strong></td>
+                        <td style="text-align: center;">{{ project.TRACKER_NAME }}</td>
+                        <td style="text-align: center;">
+                            <a href="{{ project.U_EDIT }}">{{ lang('EDIT') }}</a> | 
+                            <a href="{{ project.U_DELETE }}">{{ lang('DELETE') }}</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="3" class="row3" style="text-align: center;">{{ lang('NO_PROJECTS') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </fieldset>
+
+        <fieldset class="submit-buttons">
+            <input class="button1" type="submit" id="add" name="add" value="{{ lang('ADD_PROJECT') }}" />
+            {{ S_FORM_TOKEN }}
+        </fieldset>
+    </form>
+
+{% elseif S_MODE_SEVERITIES or S_MODE_STATUSES %}
+    <form id="acp_trackers_simple_list" method="post" action="{{ U_ACTION }}">
+        <fieldset>
+            <legend>{{ L_TITLE }}</legend>
+            <table class="table1">
+                <thead>
+                    <tr>
+                        <th>{{ lang('NAME') }}</th>
+                        <th>{{ lang('ACTION') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for item in items %}
+                    <tr>
+                        <td><strong>{{ item.NAME }}</strong></td>
+                        <td style="text-align: center;">
+                            <a href="{{ item.U_EDIT }}">{{ lang('EDIT') }}</a> | 
+                            <a href="{{ item.U_DELETE }}">{{ lang('DELETE') }}</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="2" class="row3" style="text-align: center;">{{ lang('NO_ITEMS') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </fieldset>
+
+        <fieldset class="submit-buttons">
+            <input class="button1" type="submit" id="add" name="add" value="{{ lang('ADD') }}" />
+            {{ S_FORM_TOKEN }}
+        </fieldset>
+    </form>
+{% endif %}
+
+{% include 'overall_footer.html' %}

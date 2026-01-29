@@ -3,12 +3,12 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2020, kinerity, https://www.layer-3.org/
+ * @copyright (c) 2026 nextgen <http://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
-namespace kinerity\trackers\migrations\v10x;
+namespace nextgen\trackers\migrations\v10x;
 
 use \phpbb\db\migration\container_aware_migration;
 
@@ -16,7 +16,7 @@ class m2_initial_data extends \phpbb\db\migration\container_aware_migration
 {
 	public static function depends_on()
 	{
-		return ['\kinerity\trackers\migrations\v10x\m1_initial_schema'];
+		return ['\nextgen\trackers\migrations\v10x\m1_initial_schema'];
 	}
 
 	/**
@@ -52,7 +52,7 @@ class m2_initial_data extends \phpbb\db\migration\container_aware_migration
 				'acp',
 				'TRACKERS',
 				[
-					'module_basename'	=> '\kinerity\trackers\acp\main_module',
+					'module_basename'	=> '\nextgen\trackers\acp\main_module',
 					'modes'				=> ['settings'],
 				],
 			]],*/

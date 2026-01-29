@@ -3,12 +3,12 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2020, kinerity, https://www.layer-3.org/
+ * @copyright (c) 2026 nextgen <http://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
-namespace kinerity\trackers\operators;
+namespace nextgen\trackers\operators;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -72,9 +72,9 @@ class viewproject
 
 		$s_hidden_fields = build_hidden_fields(['t' => (int) $tracker_id, 'p' => (int) $project_id]);
 
-		$tracker = $this->container->get('kinerity.trackers.functions')->get_tracker_data($tracker_id);
-		$project = $this->container->get('kinerity.trackers.functions')->get_project_data($project_id);
-		$status = $this->container->get('kinerity.trackers.functions')->get_status($tracker_id);
+		$tracker = $this->container->get('nextgen.trackers.functions')->get_tracker_data($tracker_id);
+		$project = $this->container->get('nextgen.trackers.functions')->get_project_data($project_id);
+		$status = $this->container->get('nextgen.trackers.functions')->get_status($tracker_id);
 
 		foreach ($status as $status_id => $status_data)
 		{
@@ -89,14 +89,14 @@ class viewproject
 			}
 		}
 
-		$total_tickets = $this->container->get('kinerity.trackers.functions')->get_total_tickets($tracker, $project_id, $ticket_status);
+		$total_tickets = $this->container->get('nextgen.trackers.functions')->get_total_tickets($tracker, $project_id, $ticket_status);
 
 		// Handle pagination
 		$start = $pagination->validate_start($start, $this->config['tickets_per_page'], $total_tickets);
-		$base_url = $this->helper->route('kinerity_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id, 'ticket_status' => (int) $ticket_status]);
+		$base_url = $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id, 'ticket_status' => (int) $ticket_status]);
 		$pagination->generate_template_pagination($base_url, 'pagination', 'start', $total_tickets, $this->config['tickets_per_page'], $start);
 
-		$this->container->get('kinerity.trackers.functions')->get_tickets($tracker, $project_id, $ticket_status, $start, $status_new);
+		$this->container->get('nextgen.trackers.functions')->get_tickets($tracker, $project_id, $ticket_status, $start, $status_new);
 
 		switch ($ticket_status)
 		{
@@ -113,7 +113,7 @@ class viewproject
 			break;
 
 			default:
-				$status = $this->container->get('kinerity.trackers.functions')->get_status_data($ticket_status);
+				$status = $this->container->get('nextgen.trackers.functions')->get_status_data($ticket_status);
 				$status_name = $status['status_name'];
 			break;
 		}
@@ -126,8 +126,8 @@ class viewproject
 
 			'TOTAL_TICKETS'	=> $this->language->lang('TOTAL_TICKETS', $total_tickets),
 
-			'U_ACTION'			=> $this->helper->route('kinerity_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
-			'U_POST_NEW_TICKET'	=> $this->helper->route('kinerity_trackers_controller', ['page' => 'posting', 'mode' => 'post', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
+			'U_ACTION'			=> $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
+			'U_POST_NEW_TICKET'	=> $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => 'post', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
 
 			'S_HIDDEN_FIELDS'	=> $s_hidden_fields,
 		]);
@@ -135,16 +135,16 @@ class viewproject
 		$navlinks = [
 			[
 				'FORUM_NAME'	=> $tracker['tracker_name'],
-				'U_VIEW_FORUM'	=> $this->helper->route('kinerity_trackers_controller', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
+				'U_VIEW_FORUM'	=> $this->helper->route('nextgen_trackers_controller', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
 			],
 
 			[
 				'FORUM_NAME'	=> $project['project_name'],
-				'U_VIEW_FORUM'	=> $this->helper->route('kinerity_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
+				'U_VIEW_FORUM'	=> $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
 			],
 		];
 
-		$this->container->get('kinerity.trackers.functions')->generate_navlinks($navlinks);
+		$this->container->get('nextgen.trackers.functions')->generate_navlinks($navlinks);
 
 		return $this->helper->render('viewproject_body.html', $tracker['tracker_name']);
 	}

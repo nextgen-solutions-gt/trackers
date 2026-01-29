@@ -3,12 +3,12 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2020, kinerity, https://www.layer-3.org/
+ * @copyright (c) 2026 nextgen <http://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
-namespace kinerity\trackers\operators;
+namespace nextgen\trackers\operators;
 
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
@@ -75,9 +75,9 @@ class statistics
 		$tracker_id = $this->request->variable('t', 0);
 		$project_id = $this->request->variable('p', 0);
 
-		$tracker = $this->container->get('kinerity.trackers.functions')->get_tracker_data($tracker_id);
+		$tracker = $this->container->get('nextgen.trackers.functions')->get_tracker_data($tracker_id);
 
-		if (!$tracker['allow_view_all'] && !$this->container->get('kinerity.trackers.functions')->is_team_user())
+		if (!$tracker['allow_view_all'] && !$this->container->get('nextgen.trackers.functions')->is_team_user())
 		{
 			throw new \phpbb\exception\http_exception(403, $this->language->lang('NOT_AUTHORISED'));
 		}
@@ -113,11 +113,11 @@ class statistics
 		$navlinks = [
 			[
 				'FORUM_NAME'	=> $tracker['tracker_name'],
-				'U_VIEW_FORUM'	=> $this->helper->route('kinerity_trackers_controller', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
+				'U_VIEW_FORUM'	=> $this->helper->route('nextgen_trackers_controller', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
 			],
 		];
 
-		$this->container->get('kinerity.trackers.functions')->generate_navlinks($navlinks);
+		$this->container->get('nextgen.trackers.functions')->generate_navlinks($navlinks);
 
 		// Tracker statistics
 		if (!$project_id)
@@ -129,7 +129,7 @@ class statistics
 			{
 				$this->template->assign_block_vars('trackers_stats', [
 					'TRACKER_NAME'		=> $row['tracker_name'],
-					'U_TRACKER_STATS'	=> $this->helper->route('kinerity_trackers_controller', ['page' => 'statistics', 't' => (int) $row['tracker_id']]),
+					'U_TRACKER_STATS'	=> $this->helper->route('nextgen_trackers_controller', ['page' => 'statistics', 't' => (int) $row['tracker_id']]),
 				]);
 			}
 			$this->db->sql_freeresult($result);
@@ -141,17 +141,17 @@ class statistics
 			]);
 
 			// Current month (or other timestamp)
-			$this->container->get('kinerity.trackers.functions')->generate_stats('projects', $timespan_start, $timespan_end, $tracker_id);
+			$this->container->get('nextgen.trackers.functions')->generate_stats('projects', $timespan_start, $timespan_end, $tracker_id);
 
 			// Totals
-			$this->container->get('kinerity.trackers.functions')->generate_stats('projects_total', 0, 0, $tracker_id);
+			$this->container->get('nextgen.trackers.functions')->generate_stats('projects_total', 0, 0, $tracker_id);
 
 			return $this->helper->render('statistics_tracker_body.html', $tracker['tracker_name']);
 		}
 		// Project statistics
 		else
 		{
-			$project = $this->container->get('kinerity.trackers.functions')->get_project_data($project_id);
+			$project = $this->container->get('nextgen.trackers.functions')->get_project_data($project_id);
 
 			$sql_where = 'project_id = ' . (int) $project_id . '
 				AND timestamp_created BETWEEN ' . (int) $timespan_start . ' AND ' . (int) $timespan_end;
@@ -171,7 +171,7 @@ class statistics
 
 			// Get status_id -> number of tickets
 			$status_ids = [];
-			$statuses = $this->container->get('kinerity.trackers.functions')->get_status($tracker_id);
+			$statuses = $this->container->get('nextgen.trackers.functions')->get_status($tracker_id);
 
 			foreach ($statuses as $status)
 			{
@@ -206,7 +206,7 @@ class statistics
 				'STATISTICS_EXPLAIN'	=> $this->language->lang('STATISTICS_PROJECT_EXPLAIN', $project['project_name'], $this->config['sitename'], $tracker['tracker_name']),
 				'SEARCH_FILTER'	=> $search_filter,
 
-				'U_TRACKER_STATS'	=> $this->helper->route('kinerity_trackers_controller', ['page' => 'statistics', 't' => (int) $tracker_id]),
+				'U_TRACKER_STATS'	=> $this->helper->route('nextgen_trackers_controller', ['page' => 'statistics', 't' => (int) $tracker_id]),
 			]);
 
 			return $this->helper->render('statistics_project_body.html', $project['project_name']);

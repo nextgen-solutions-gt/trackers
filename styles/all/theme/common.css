@@ -1,0 +1,134 @@
+/* Trackers Style Sheet
+---------------------------------------- */
+.main {
+    font-family: Verdana, Helvetica, Arial, sans-serif;
+    position: relative;
+    overflow: hidden;
+    float: left; /* Añadido para soporte de columnas */
+    width: calc(100% - 300px); /* Ajuste dinámico para dejar espacio a .extras */
+}
+
+.main h3 {
+    text-transform: none;
+    border-bottom: none;
+    font-size: 1.2em;
+}
+
+.main h3 span {
+    text-transform: lowercase;
+    color: #000000;
+}
+
+.wide {
+    width: 100% !important;
+    float: none !important;
+}
+
+.extras {
+    float: right;
+    width: 260px;
+    margin: 26px 0 30px 30px;
+}
+
+.mini-panel {
+    background-color: #ebebeb;
+    -moz-border-radius: 7px;
+    -webkit-border-radius: 7px;
+    border-radius: 7px;
+    margin-bottom: 5px;
+    padding: 5px 10px;
+}
+
+.mini-panel h3 {
+    font-family: Verdana, Helvetica, Arial, sans-serif;
+    color: #333333;
+    margin: 5px 0 0;
+}
+
+.menu {
+    border-top: 1px solid #ffffff;
+    list-style: none;
+    padding-left: 0;
+}
+
+.menu li {
+    border-bottom: 1px solid #cccccc;
+    margin: 0;
+    padding: 5px 0 4px;
+}
+
+.menu li:last-child {
+    border-bottom: none;
+}
+
+/* Tablas y Errores */
+tr.error {
+    height: 50px;
+}
+
+td.error {
+    text-align: center;
+}
+
+.ticket-closed {
+    text-decoration: line-through;
+}
+
+/* Historial y Comentarios */
+.history {
+    background-color: #FBFBFB;
+    border-left: 3px solid #E2E2E2; /* Marca visual de historial */
+    margin-bottom: 2px !important;
+}
+
+.history-text {
+    color: #555555;
+    font-size: 0.95em;
+}
+
+/* Privacidad y Etiquetas */
+span.post_private {
+    color: #FF0000;
+    font-weight: bold;
+}
+
+.reported-private {
+    border: 1px solid #FFDada !important;
+    background-color: #FFF5F5 !important;
+}
+
+.post_private_label {
+    background-color: #D32F2F;
+    color: #FFFFFF;
+    padding: 1px 4px;
+    border-radius: 3px;
+    font-size: 0.85em;
+    margin-left: 5px;
+}
+
+/* Elementos de detalle */
+.small {
+    font-size: 9px;
+}
+
+.comment-buttons {
+    margin-top: -18px;
+    margin-bottom: 9px;
+}
+
+/* Fix para limpiar floats */
+.action-bar.bar-bottom {
+    clear: both;
+}
+
+/* Responsividad básica para tablets/móviles */
+@media (max-width: 950px) {
+    .main, .extras {
+        float: none !important;
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+}
+
+.icon-red { color: #d32f2f; }
+.ticket-private { background-color: #fff5f5 !important; }

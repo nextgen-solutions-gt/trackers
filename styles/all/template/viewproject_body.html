@@ -1,0 +1,136 @@
+{% INCLUDECSS '@nextgen_trackers/common.css' %}
+{% include 'overall_header.html' %}
+
+<div class="main wide">
+    <h2 class="forum-title">{{ TRACKER_NAME }}</h2>
+
+    <div class="panel bg2">
+        <div class="inner">
+            <strong>{{ lang('CURRENT_STATUS') }}{{ lang('COLON') }}</strong> {{ STATUS }}
+        </div>
+    </div>
+
+    <div class="action-bar bar-top">
+        {# Botón para nuevo ticket #}
+        <a href="{{ U_POST_NEW_TICKET }}" class="button" title="{{ lang('POST_TICKET') }}">
+            <span>{{ lang('BUTTON_NEW_TICKET') }}</span> <i class="icon fa-pencil fa-fw" aria-hidden="true"></i>
+        </a>
+
+        {# Caja de búsqueda y filtros #}
+        <div class="search-box" role="search">
+            <form method="get" id="ticket_status_form" action="{{ U_ACTION }}">
+                <fieldset>
+                    <label for="ticket_status">
+                        <strong>{{ lang('FILTER_TICKETS') }}{{ lang('COLON') }}</strong>
+                    </label>
+                    <select id="ticket_status" name="ticket_status" onchange="document.getElementById('ticket_status_form').submit();">
+                        <option value="0"{% if STATUS_ID == 0 %} selected="selected"{% endif %}>{{ lang('ALL_OPEN') }}</option>
+                        <option value="-1"{% if STATUS_ID == -1 %} selected="selected"{% endif %}>{{ lang('ALL_TICKETS') }}</option>
+                        <option value="-2"{% if STATUS_ID == -2 %} selected="selected"{% endif %}>{{ lang('ALL_CLOSED') }}</option>
+                        <optgroup label="──────────">
+                            {% for status in loops.status_ary %}
+                                <option value="{{ status.ID }}"{% if status.ID == STATUS_ID %} selected="selected"{% endif %}>{{ status.NAME }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                    {{ S_HIDDEN_FIELDS }}
+                    <noscript><input type="submit" value="{{ lang('SUBMIT') }}" class="button2" /></noscript>
+                </fieldset>
+            </form>
+        </div>
+
+        {# Paginación #}
+        <div class="pagination">
+            {{ TOTAL_TICKETS }}
+            {% if loops.pagination|length %}
+                {% include 'pagination.html' %}
+            {% else %}
+                &bull; {{ PAGE_NUMBER }}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="forabg">
+        <div class="inner">
+            <table class="table1" id="trackers_table">
+                <thead>
+                    <tr>
+                        <th class="name">#</th>
+                        <th class="name">{{ lang('TITLE') }}</th>
+                        <th class="center">{{ lang('COMPONENT') }}</th>
+                        <th class="center">{{ lang('ASSIGNED') }}</th>
+                        <th class="center">{{ lang('STATUS') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for ticket in loops.tickets %}
+                    {# Cambio: Se añade una clase 'ticket-private' si el ticket es privado para estilo personalizado #}
+                    <tr class="{% if ticket.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}{% if ticket.S_PRIVATE %} ticket-private{% endif %}">
+                        <td class="name" style="width: 5%;"><strong>{{ ticket.ID }}</strong></td>
+                        <td class="name">
+                            <div class="list-inner">
+                                {% if ticket.S_PRIVATE %}
+                                    <i class="icon fa-lock fa-fw icon-red" aria-hidden="true" title="{{ lang('PRIVATE') }}"></i>
+                                    <span class="responsive-show" style="display: none; color: #d32f2f; font-weight: bold; font-size: 0.8em; text-transform: uppercase;">[{{ lang('PRIVATE') }}]</span>
+                                {% endif %}
+                                
+                                <a href="{{ ticket.U_VIEWTICKET }}" class="topictitle"><strong>{{ ticket.TITLE }}</strong></a>
+                                
+                                {% if ticket.S_NEW %}
+                                    <i class="icon fa-file-o fa-fw icon-red" aria-hidden="true" title="{{ lang('NEW') }}"></i>
+                                {% endif %}
+                                <br />
+                                <span class="small">
+                                    <i class="icon fa-user fa-fw" aria-hidden="true"></i> {{ ticket.REPORTER }} 
+                                    &raquo; <i class="icon fa-clock-o fa-fw" aria-hidden="true"></i> {{ ticket.TIMESTAMP }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="center" style="width: 15%;">
+                            {% if ticket.COMPONENT %}{{ ticket.COMPONENT }}{% else %}<span class="small">({{ lang('UNKNOWN') }})</span>{% endif %}
+                        </td>
+                        <td class="center" style="width: 20%;">
+                            {% if ticket.ASSIGNED %}<strong>{{ ticket.ASSIGNED }}</strong>{% else %}<span class="small">({{ lang('UNASSIGNED') }})</span>{% endif %}
+                        </td>
+                        <td class="center" style="width: 15%;">
+                            {# El badge de estado ahora usa el color de severidad de forma dinámica #}
+                            <span class="badge" style="background-color: #{{ ticket.SEV_COLOUR }}; padding: 3px 8px; border-radius: 4px; color: #000; font-size: 0.85em; font-weight: bold; border: 1px solid rgba(0,0,0,0.1);">
+                                {{ ticket.STATUS }}
+                            </span>
+                            {% if ticket.DUPLICATE_ID %}
+                                <br /><small>{{ lang('DUPLICATE') }}: <a href="{{ ticket.U_DUPLICATE }}">#{{ ticket.DUPLICATE_ID }}</a></small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr class="bg1">
+                        <td colspan="5" class="center" style="padding: 20px;">
+                            <i class="icon fa-info-circle fa-fw" aria-hidden="true"></i> {{ lang('NO_TICKETS') }}
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="action-bar bar-bottom">
+        {# Botón de retorno al Tracker #}
+        <div class="buttons">
+            <a href="{{ U_VIEWTRACKER }}" class="button" title="{{ lang('RETURN_TRACKER') }}">
+                <i class="icon fa-chevron-left fa-fw" aria-hidden="true"></i> <span>{{ lang('RETURN_TRACKER') }}</span>
+            </a>
+        </div>
+
+        <div class="pagination">
+            {{ TOTAL_TICKETS }}
+            {% if loops.pagination|length %}
+                {% include 'pagination.html' %}
+            {% else %}
+                &bull; {{ PAGE_NUMBER }}
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% include 'overall_footer.html' %}

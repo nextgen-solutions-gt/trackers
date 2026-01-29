@@ -1,3 +1,11 @@
-kinerity_trackers_controller:
+# Main Entry Point - Redirige a la vista principal de Trackers
+nextgen_trackers_base:
+    path: /trackers/
+    defaults: { _controller: nextgen.trackers.controller:display, page: viewtracker }
+    methods: [GET]
+
+# Generic Controller Access - Maneja todas las páginas (posting, viewticket, viewproject, etc.)
+nextgen_trackers_controller:
     path: /trackers/{page}
-    defaults: { _controller: kinerity.trackers.controller.main:display }
+    defaults: { _controller: nextgen.trackers.controller:display }
+    methods: [GET, POST]
