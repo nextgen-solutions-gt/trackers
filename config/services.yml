@@ -49,7 +49,7 @@ services:
         tags:
             - { name: event.listener }
 
-    nextgen.trackers.viewtracker:
+    nextgen.trackers.operator.viewtracker:
         class: nextgen\trackers\operators\viewtracker
         arguments:
             - '@service_container'
@@ -59,9 +59,10 @@ services:
             - '@template'
             - '@user'
 
-    nextgen.trackers.viewproject:
+    nextgen.trackers.operator.viewproject:
         class: nextgen\trackers\operators\viewproject
         arguments:
+            - '@auth'
             - '@config'
             - '@service_container'
             - '@language'
@@ -70,7 +71,7 @@ services:
             - '@template'
             - '@user'
 
-    nextgen.trackers.viewticket:
+    nextgen.trackers.operator.viewticket:
         class: nextgen\trackers\operators\viewticket
         arguments:
             - '@auth'
@@ -82,7 +83,7 @@ services:
             - '@template'
             - '@user'
 
-    nextgen.trackers.statistics:
+    nextgen.trackers.operator.statistics:
         class: nextgen\trackers\operators\statistics
         arguments:
             - '@config'
@@ -93,9 +94,10 @@ services:
             - '@request'
             - '@template'
             - '@user'
-            - '%tables%'
+            - '@auth'
+            - '%core.table_prefix%'
 
-    nextgen.trackers.posting:
+    nextgen.trackers.operator.posting:
         class: nextgen\trackers\operators\posting
         arguments:
             - '@auth'

@@ -92,7 +92,6 @@ $lang = array_merge($lang, [
 	'CONFIRM_DELETE'           => 'Are you sure you want to delete this item?',
 	'CONFIRM_DELETE_TICKET'    => 'Are you sure you want to delete this ticket and all its comments?',
 	'CONFIRM_DELETE_POST'      => 'Are you sure you want to delete this comment?',
-	'MESSAGE_BODY_EXPLAIN'     => 'Enter your message here...',
 	'RETURN_PROJECT'           => 'Click %1$sHERE%2$s to return to the project.',
 	'RETURN_PAGE'              => 'Click %1$sHERE%2$s to return to the previous page.',
 

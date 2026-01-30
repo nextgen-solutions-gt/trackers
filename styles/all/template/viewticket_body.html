@@ -10,6 +10,13 @@
     </a>
     {% endif %}
     
+    {# BOTÓN DE CERRAR TICKET #}
+    {% if S_CAN_CLOSE and not S_CLOSED %}
+    <a href="{{ U_ACTION }}&mode=close" class="button button-secondary" title="{{ lang('CLOSE_TICKET') }}">
+        <i class="icon fa-check-square-o fa-fw" aria-hidden="true"></i><span>{{ lang('CLOSE_TICKET') }}</span>
+    </a>
+    {% endif %}
+    
     <div class="pagination">
         {% if pagination|length %}
             {% include 'pagination.html' %}
@@ -22,6 +29,7 @@
 <div class="row-item">
     <div class="extras" style="float: right; width: 25%; margin-left: 1%;">
         
+        {# PANEL DE DETALLES DEL TICKET #}
         <div class="panel">
             <div class="inner">
                 <h3 style="margin-bottom: 10px; font-size: 1.1em;"><i class="icon fa-list-alt fa-fw" aria-hidden="true"></i> {{ lang('TICKET_DETAILS') }}</h3>
@@ -62,11 +70,13 @@
         </div>
         {% endif %}
 
-        {% if S_CAN_MANAGE %}
+        {# SECCIÓN DE GESTIÓN (Filtrada por ACL y Relaciones) #}
+        {% if S_CAN_CHANGE_STATUS or S_CAN_ASSIGN %}
         <div class="panel bg3">
             <div class="inner">
                 <h3 style="margin-bottom: 10px; font-size: 1.1em;"><i class="icon fa-cogs fa-fw" aria-hidden="true"></i> {{ lang('OPTIONS') }}</h3>
                 
+                {% if S_CAN_CHANGE_STATUS %}
                 <fieldset style="margin-bottom: 10px;">
                     <label style="font-size: 10px; font-weight: bold;">{{ lang('CHANGE_STATUS') }}:</label>
                     <form method="post" id="change_status_form" action="{{ U_ACTION }}">
@@ -84,13 +94,15 @@
                     <form method="post" id="change_severity_form" action="{{ U_ACTION }}">
                         <select name="change_severity" onchange="document.getElementById('change_severity_form').submit();" style="width: 100%;">
                         {% for severity in severities %}
-                            <option value="{{ severity.ID }}"{% if severity.ID == SEVERITY_ID %} selected="selected"{% endif %}>{{ severity.NAME }}</option>
+                            <option value="{{ severity.ID }}" {% if severity.ID == SEVERITY_ID %} selected="selected"{% endif %}>{{ severity.NAME }}</option>
                         {% endfor %}
                         </select>
                         {{ S_HIDDEN_FIELDS }}
                     </form>
                 </fieldset>
-                
+                {% endif %}
+
+                {% if S_CAN_ASSIGN %}
                 <hr style="border-top: 1px dashed #ccc;">
 
                 <fieldset>
@@ -113,15 +125,18 @@
                         {{ S_HIDDEN_FIELDS }}
                     </form>
                 </fieldset>
+                {% endif %}
             </div>
         </div>
         {% endif %}
     </div>
 
+    {# CONTENIDO PRINCIPAL DEL TICKET #}
     <div class="main" style="float: left; width: 74%;">
         
         <h3 class="ticket-header{% if S_CLOSED %} ticket-closed{% endif %}">
             {% if S_TICKET_PRIVATE %}<i class="icon fa-lock fa-fw" aria-hidden="true" style="color: #bc2a4d;" title="{{ lang('PRIVATE') }}"></i> {% endif %}
+            {% if S_CLOSED %}<span class="label-closed">[{{ lang('CLOSED') }}]</span> {% endif %}
             {{ TICKET_TITLE }} 
         </h3>
 
@@ -168,17 +183,19 @@
 
         {% for post in ticket_posts %}
             {% if post.S_TYPE == 'HISTORY' %}
-            <div id="history{{ post.ID }}" class="post history-row" style="background: none; border-bottom: 1px dashed #ccc; padding: 5px 0; min-height: auto;">
-                <div class="inner">
-                    <div class="postbody wide small">
-                        <div class="content history-meta" style="font-size: 0.9em; color: #666;">
-                            <i class="icon fa-clock-o fa-fw" aria-hidden="true"></i> <time>{{ post.TIMESTAMP }}</time> - 
-                            <span class="username">{{ post.USER }}</span>: 
-                            <span class="history-text" style="color: #333; font-style: italic;">{{ post.TEXT }}</span>
+                {% if S_CAN_VIEW_LOGS %}
+                <div id="history{{ post.ID }}" class="post history-row" style="background: none; border-bottom: 1px dashed #ccc; padding: 5px 0; min-height: auto;">
+                    <div class="inner">
+                        <div class="postbody wide small">
+                            <div class="content history-meta" style="font-size: 0.9em; color: #666;">
+                                <i class="icon fa-clock-o fa-fw" aria-hidden="true"></i> <time>{{ post.TIMESTAMP }}</time> - 
+                                <span class="username">{{ post.USER }}</span>: 
+                                <span class="history-text" style="color: #333; font-style: italic;">{{ post.TEXT }}</span>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+                {% endif %}
             {% else %}
             <div id="post{{ post.ID }}" class="post {% if post.S_PRIVATE %}reported-private {% endif %}{% if post.S_ROW_COUNT is even %}bg2{% else %}bg1{% endif %}">
                 <div class="inner">

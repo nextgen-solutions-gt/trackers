@@ -23,6 +23,7 @@ class posting
     protected $user;
     protected $db;
     protected $tables;
+    protected $config;
 
     public function __construct(\phpbb\auth\auth $auth, ContainerInterface $container, \phpbb\language\language $language, \phpbb\controller\helper $helper, \phpbb\request\request $request, \phpbb\template\template $template, \phpbb\user $user, $table_prefix)
     {
@@ -34,12 +35,17 @@ class posting
         $this->template = $template;
         $this->user = $user;
         $this->db = $container->get('dbal.conn');
+        $this->config = $container->get('config');
 
         $this->tables = [
-            'trackers_tracker'  => $table_prefix . 'trackers_tracker',
-            'trackers_project'  => $table_prefix . 'trackers_project',
-            'trackers_ticket'   => $table_prefix . 'trackers_ticket',
-            'trackers_post'     => $table_prefix . 'trackers_post',
+            'trackers_tracker'   => $table_prefix . 'trackers_tracker',
+            'trackers_project'   => $table_prefix . 'trackers_project',
+            'trackers_ticket'    => $table_prefix . 'trackers_ticket',
+            'trackers_post'      => $table_prefix . 'trackers_post',
+            'trackers_severity'  => $table_prefix . 'trackers_severity',
+            'trackers_status'    => $table_prefix . 'trackers_status',
+            'trackers_relations' => $table_prefix . 'trackers_relations',
+            'smilies'            => $table_prefix . 'smilies',
         ];
     }
 
@@ -54,6 +60,7 @@ class posting
         $project_id = ($project_id) ? $project_id : $this->request->variable('p', 0);
         $ticket_id  = ($ticket_id)  ? $ticket_id  : $this->request->variable('ticket', 0);
 
+        // Lógica de Borrado (Sin cambios)
         if ($mode == 'delete')
         {
             if ($post_id && (!$ticket_id || !$project_id))
@@ -119,6 +126,7 @@ class posting
             }
         }
 
+        // Lógica de Guardado (Mejorada para respetar relaciones)
         if ($this->request->is_set_post('post'))
         {
             if (!check_form_key('nextgen_trackers_posting')) trigger_error('FORM_INVALID');
@@ -129,17 +137,39 @@ class posting
             $severity = $this->request->variable('severity', 0);
 
             $uid = $bitfield = $flags = '';
-            generate_text_for_storage($message, $uid, $bitfield, $flags, true, true, true);
+            $allow_bbcode = $allow_urls = $allow_smilies = true;
+
+            generate_text_for_storage($message, $uid, $bitfield, $flags, $allow_bbcode, $allow_urls, $allow_smilies, $allow_bbcode, $allow_bbcode, true, $allow_urls);
 
             $functions = $this->container->get('nextgen.trackers.functions');
 
             if ($mode == 'post' && !$ticket_id)
             {
+                // Buscamos el Status "New" ASIGNADO a este proyecto
+                $sql = 'SELECT s.status_id 
+                        FROM ' . $this->tables['trackers_status'] . ' s
+                        INNER JOIN ' . $this->tables['trackers_relations'] . ' r ON s.status_id = r.item_id
+                        WHERE r.project_id = ' . (int) $project_id . " 
+                            AND r.item_type = 'status' 
+                            AND s.ticket_new = 1";
+                $result = $this->db->sql_query_limit($sql, 1);
+                $status_id = (int) $this->db->sql_fetchfield('status_id');
+                $this->db->sql_freeresult($result);
+
+                // Si no hay ninguno marcado como "New", agarramos el primero asignado
+                if (!$status_id)
+                {
+                    $sql = 'SELECT item_id FROM ' . $this->tables['trackers_relations'] . " WHERE project_id = " . (int) $project_id . " AND item_type = 'status' ORDER BY item_id ASC";
+                    $result = $this->db->sql_query_limit($sql, 1);
+                    $status_id = (int) $this->db->sql_fetchfield('item_id');
+                    $this->db->sql_freeresult($result);
+                }
+
                 $sql_ary = [
                     'project_id'        => (int) $project_id,
                     'user_id'           => (int) $this->user->data['user_id'],
                     'reporter_ip'       => $this->user->ip,
-                    'status_id'         => 1,
+                    'status_id'         => (int) $status_id,
                     'severity_id'       => (int) $severity,
                     'ticket_private'    => (int) $private,
                     'ticket_title'      => (string) $subject,
@@ -162,7 +192,6 @@ class posting
                 ];
                 $this->db->sql_query('INSERT INTO ' . $this->tables['trackers_post'] . ' ' . $this->db->sql_build_array('INSERT', $sql_ary_post));
                 $new_post_id = $this->db->sql_nextid();
-
                 $this->db->sql_query('UPDATE ' . $this->tables['trackers_ticket'] . ' SET post_id = ' . (int) $new_post_id . ' WHERE ticket_id = ' . (int) $ticket_id);
             }
             elseif ($mode == 'reply' || ($mode == 'post' && $ticket_id))
@@ -181,47 +210,48 @@ class posting
                 $this->db->sql_query('INSERT INTO ' . $this->tables['trackers_post'] . ' ' . $this->db->sql_build_array('INSERT', $sql_ary));
                 $this->db->sql_query('UPDATE ' . $this->tables['trackers_ticket'] . ' SET user_last_id = ' . (int) $this->user->data['user_id'] . ' WHERE ticket_id = ' . (int) $ticket_id);
 
-                // OBTENER DATOS DEL TICKET PARA LÓGICA DE ESTADO
                 $ticket_data = $functions->get_ticket_data($ticket_id);
-
-                // CAMBIO DE ESTADO AUTOMÁTICO
-                // Si el que responde es el usuario asignado (Staff)
-                if ((int) $this->user->data['user_id'] === (int) $ticket_data['assigned_user'])
+                /*if ((int) $this->user->data['user_id'] === (int) $ticket_data['assigned_user'])
                 {
-                    // Cambiamos a "Esperando respuesta del usuario" (ID 3 por ejemplo)
                     $functions->set_status($ticket_id, 3);
                 }
-                // Si el que responde es el autor del ticket
                 else if ((int) $this->user->data['user_id'] === (int) $ticket_data['user_id'])
                 {
-                    // Cambiamos a "Respondido / Pendiente Staff" (ID 2 por ejemplo)
                     $functions->set_status($ticket_id, 2);
-                }
-
-                // DISPARAR NOTIFICACIÓN DE RESPUESTA
+                }*/
                 $functions->notify_reply($ticket_data, $sql_ary);
             }
             elseif ($mode == 'edit' && $post_id)
             {
-                $sql_ary = ['post_text' => (string) $message, 'post_private' => (int) $private, 'bbcode_uid' => (string) $uid, 'bbcode_bitfield' => (string) $bitfield, 'bbcode_flags' => (int) $flags];
+                $sql_ary = [
+                    'post_text'       => (string) $message, 
+                    'post_private'    => (int) $private, 
+                    'bbcode_uid'      => (string) $uid, 
+                    'bbcode_bitfield' => (string) $bitfield, 
+                    'bbcode_flags'    => (int) $flags
+                ];
                 $this->db->sql_query('UPDATE ' . $this->tables['trackers_post'] . ' SET ' . $this->db->sql_build_array('UPDATE', $sql_ary) . ' WHERE post_id = ' . (int) $post_id);
 
                 $sql = 'SELECT ticket_id FROM ' . $this->tables['trackers_post'] . ' WHERE post_id = ' . (int) $post_id;
                 $result = $this->db->sql_query($sql);
-                $ticket_id = (int) $this->db->sql_fetchfield('ticket_id');
+                $tid = (int) $this->db->sql_fetchfield('ticket_id');
                 $this->db->sql_freeresult($result);
 
-                if ($ticket_id)
+                if ($tid)
                 {
-                    $sql = 'SELECT post_id FROM ' . $this->tables['trackers_ticket'] . ' WHERE ticket_id = ' . (int) $ticket_id;
+                    $sql = 'SELECT post_id FROM ' . $this->tables['trackers_ticket'] . ' WHERE ticket_id = ' . $tid;
                     $result = $this->db->sql_query($sql);
-                    $main_post_id_edit = (int) $this->db->sql_fetchfield('post_id');
+                    $main_post_id_check = (int) $this->db->sql_fetchfield('post_id');
                     $this->db->sql_freeresult($result);
 
-                    if ($main_post_id_edit == $post_id)
+                    if ($main_post_id_check === (int) $post_id)
                     {
-                        $sql_ary_ticket = ['ticket_title' => (string) $subject, 'severity_id' => (int) $severity, 'ticket_private' => (int) $private];
-                        $this->db->sql_query('UPDATE ' . $this->tables['trackers_ticket'] . ' SET ' . $this->db->sql_build_array('UPDATE', $sql_ary_ticket) . ' WHERE ticket_id = (int) $ticket_id');
+                        $sql_ary_ticket = [
+                            'ticket_title'   => (string) $subject,
+                            'severity_id'    => (int) $severity,
+                            'ticket_private' => (int) $private,
+                        ];
+                        $this->db->sql_query('UPDATE ' . $this->tables['trackers_ticket'] . ' SET ' . $this->db->sql_build_array('UPDATE', $sql_ary_ticket) . ' WHERE ticket_id = ' . $tid);
                     }
                 }
             }
@@ -231,6 +261,30 @@ class posting
             meta_refresh(3, $redirect);
             trigger_error($this->language->lang('POST_STORED_SUCCESS'));
         }
+
+        // LÓGICA DE SMILIES (Sin cambios)
+        $sql = 'SELECT * FROM ' . $this->tables['smilies'] . ' WHERE display_on_posting = 1 ORDER BY smiley_order';
+        $result = $this->db->sql_query($sql);
+        $board_url = generate_board_url() . '/';
+        $shown_images = [];
+
+        while ($row = $this->db->sql_fetchrow($result))
+        {
+            if (in_array($row['smiley_url'], $shown_images)) continue;
+
+            $this->template->assign_block_vars('smiley', [
+                'SMILEY_CODE'    => $row['code'],
+                'A_SMILEY_CODE'  => addslashes($row['code']),
+                'SMILEY_IMG'     => $board_url . $this->config['smilies_path'] . '/' . $row['smiley_url'],
+                'SMILEY_WIDTH'   => $row['smiley_width'],
+                'SMILEY_HEIGHT'  => $row['smiley_height'],
+                'SMILEY_DESC'    => $row['emotion'],
+            ]);
+            $shown_images[] = $row['smiley_url'];
+        }
+        $this->db->sql_freeresult($result);
+        
+        
 
         $current_message = $current_subject = '';
         $current_severity = $current_private = 0;
@@ -260,33 +314,52 @@ class posting
                     $is_first_post = true;
                     $current_subject = $row['t_title'];
                     $current_severity = (int) $row['severity_id'];
+                    $current_private = (int) $row['t_private'];
                 }
             }
         }
 
-        $functions = $this->container->get('nextgen.trackers.functions');
-        foreach ($functions->get_severities($tracker_id) as $sev)
+        // --- MEJORA: SEVERIDADES ASIGNADAS ---
+        $sql = 'SELECT s.severity_id, s.severity_name, s.severity_colour 
+                FROM ' . $this->tables['trackers_severity'] . ' s
+                INNER JOIN ' . $this->tables['trackers_relations'] . ' r ON s.severity_id = r.item_id
+                WHERE r.project_id = ' . (int) $project_id . " 
+                    AND r.item_type = 'severity' 
+                ORDER BY s.severity_order ASC";
+        $result = $this->db->sql_query($sql);
+        $s_count = 0;
+        while ($sev = $this->db->sql_fetchrow($result))
         {
-            $this->template->assign_block_vars('severities', ['ID' => $sev['severity_id'], 'NAME' => $sev['severity_name']]);
+            $s_count++;
+            $this->template->assign_block_vars('severities', [
+                'ID'     => $sev['severity_id'], 
+                'NAME'   => $sev['severity_name'],
+                'COLOUR' => $sev['severity_colour']
+            ]);
         }
+        $this->db->sql_freeresult($result);
 
         add_form_key('nextgen_trackers_posting');
 
         $this->template->assign_vars([
-            'TRACKER_ID'      => (int) $tracker_id,
-            'PROJECT_ID'      => (int) $project_id,
-            'TICKET_ID'       => (int) $ticket_id,
-            'POST_ID'         => (int) $post_id,
-            'MESSAGE'         => $current_message,
-            'SUBJECT'         => $current_subject,
-            'SEVERITY_ID'     => $current_severity,
-            'S_PRIVATE'       => $current_private,
-            'S_EDIT_POST'     => ($mode == 'edit'),
-            'S_NEW_TICKET'    => ($mode == 'post' && !$ticket_id),
-            'S_REPLY_TICKET'  => ($mode == 'reply' || ($mode == 'post' && $ticket_id)),
-            'S_FIRST_POST'    => $is_first_post,
-            'L_POSTING_TITLE' => ($mode == 'edit') ? (($is_first_post) ? $this->language->lang('EDIT_TICKET') : $this->language->lang('EDIT_COMMENT')) : (($ticket_id) ? $this->language->lang('REPLY_TICKET') : $this->language->lang('NEW_TICKET')),
-            'U_ACTION'        => $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => $mode, 't' => $tracker_id, 'p' => $project_id, 'ticket' => $ticket_id, 'post' => $post_id]),
+            'TRACKER_ID'        => (int) $tracker_id,
+            'PROJECT_ID'        => (int) $project_id,
+            'TICKET_ID'         => (int) $ticket_id,
+            'POST_ID'           => (int) $post_id,
+            'MESSAGE'           => $current_message,
+            'SUBJECT'           => $current_subject,
+            'SEVERITY_ID'       => $current_severity,
+            'S_PRIVATE'         => $current_private,
+            'S_HAS_SEVERITIES'  => ($s_count > 0),
+            'S_EDIT_POST'       => ($mode == 'edit'),
+            'S_NEW_TICKET'      => ($mode == 'post' && !$ticket_id),
+            'S_REPLY_TICKET'    => ($mode == 'reply' || ($mode == 'post' && $ticket_id)),
+            'S_FIRST_POST'      => $is_first_post,
+            'L_POSTING_TITLE'   => ($mode == 'edit') ? (($is_first_post) ? $this->language->lang('EDIT_TICKET') : $this->language->lang('EDIT_COMMENT')) : (($ticket_id) ? $this->language->lang('REPLY_TICKET') : $this->language->lang('NEW_TICKET')),
+            'U_ACTION'          => $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => $mode, 't' => $tracker_id, 'p' => $project_id, 'ticket' => $ticket_id, 'post' => $post_id]),
+            'S_BBCODE_ALLOWED'  => true,
+            'S_SMILIES_ALLOWED' => true,
+            'S_LINKS_ALLOWED'   => true,
         ]);
 
         return $this->helper->render('posting_body.html', $this->language->lang('POSTING'));

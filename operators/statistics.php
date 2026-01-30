@@ -41,6 +41,9 @@ class statistics
 	/** @var \phpbb\user */
 	protected $user;
 
+    /** @var \phpbb\auth\auth */
+    protected $auth;
+
 	/** @var array */
 	protected $tables;
 
@@ -55,9 +58,10 @@ class statistics
 	 * @param \phpbb\request\request             $request
 	 * @param \phpbb\template\template           $template
 	 * @param \phpbb\user                        $user
-	 * @param array                              $tables
+     * @param \phpbb\auth\auth                   $auth
+	 * @param string                             $table_prefix  <-- CAMBIO IMPORTANTE: Recibimos string
 	 */
-	public function __construct(\phpbb\config\config $config, ContainerInterface $container, \phpbb\db\driver\driver_interface $db, \phpbb\language\language $language, \phpbb\controller\helper $helper, \phpbb\request\request $request, \phpbb\template\template $template, \phpbb\user $user, $tables)
+	public function __construct(\phpbb\config\config $config, ContainerInterface $container, \phpbb\db\driver\driver_interface $db, \phpbb\language\language $language, \phpbb\controller\helper $helper, \phpbb\request\request $request, \phpbb\template\template $template, \phpbb\user $user, \phpbb\auth\auth $auth, $table_prefix)
 	{
 		$this->config = $config;
 		$this->container = $container;
@@ -67,7 +71,15 @@ class statistics
 		$this->request = $request;
 		$this->template = $template;
 		$this->user = $user;
-		$this->tables = $tables;
+        $this->auth = $auth;
+
+        // Definimos las tablas manualmente para evitar errores de claves indefinidas
+		$this->tables = [
+            'trackers_tracker'      => $table_prefix . 'trackers_tracker',
+            'trackers_project'      => $table_prefix . 'trackers_project',
+            'trackers_status'       => $table_prefix . 'trackers_status',
+            'trackers_ticket'       => $table_prefix . 'trackers_ticket',
+        ];
 	}
 
 	public function display()
@@ -75,10 +87,18 @@ class statistics
 		$tracker_id = $this->request->variable('t', 0);
 		$project_id = $this->request->variable('p', 0);
 
-		$tracker = $this->container->get('nextgen.trackers.functions')->get_tracker_data($tracker_id);
+        $functions = $this->container->get('nextgen.trackers.functions');
+		$tracker = $functions->get_tracker_data($tracker_id);
 
-		if (!$tracker['allow_view_all'] && !$this->container->get('nextgen.trackers.functions')->is_team_user())
+        // SEGURIDAD: Verificar permiso de ver
+        if (!$this->auth->acl_get('u_tracker_view'))
+        {
+            trigger_error('NOT_AUTHORISED');
+        }
+
+		if (!$tracker['allow_view_all'] && !$functions->is_team_user())
 		{
+            // Verificación adicional si el tracker es estricto
 			throw new \phpbb\exception\http_exception(403, $this->language->lang('NOT_AUTHORISED'));
 		}
 
@@ -117,9 +137,9 @@ class statistics
 			],
 		];
 
-		$this->container->get('nextgen.trackers.functions')->generate_navlinks($navlinks);
+		$functions->generate_navlinks($navlinks);
 
-		// Tracker statistics
+		// Tracker statistics (Vista General)
 		if (!$project_id)
 		{
 			$sql = 'SELECT tracker_id, tracker_name
@@ -141,20 +161,29 @@ class statistics
 			]);
 
 			// Current month (or other timestamp)
-			$this->container->get('nextgen.trackers.functions')->generate_stats('projects', $timespan_start, $timespan_end, $tracker_id);
+			$functions->generate_stats('projects', $timespan_start, $timespan_end, $tracker_id);
 
 			// Totals
-			$this->container->get('nextgen.trackers.functions')->generate_stats('projects_total', 0, 0, $tracker_id);
+			$functions->generate_stats('projects_total', 0, 0, $tracker_id);
 
 			return $this->helper->render('statistics_tracker_body.html', $tracker['tracker_name']);
 		}
-		// Project statistics
+		// Project statistics (Vista de Proyecto Específico)
 		else
 		{
-			$project = $this->container->get('nextgen.trackers.functions')->get_project_data($project_id);
+			$project = $functions->get_project_data($project_id);
 
 			$sql_where = 'project_id = ' . (int) $project_id . '
 				AND timestamp_created BETWEEN ' . (int) $timespan_start . ' AND ' . (int) $timespan_end;
+            
+            // CORRECCIÓN DE FILTRADO: Lógica de Privacidad
+            // Si el usuario no tiene permisos elevados, solo contar tickets públicos o propios
+            $can_see_private = ($this->auth->acl_get('m_') || $this->auth->acl_get('u_tracker_view_private') || $functions->is_team_user($project_id));
+            
+            if (!$can_see_private)
+            {
+                $sql_where .= ' AND (ticket_private = 0 OR user_id = ' . (int) $this->user->data['user_id'] . ')';
+            }
 
 			if ($timespan_start > 0 && $timespan_end > 0)
 			{
@@ -171,7 +200,7 @@ class statistics
 
 			// Get status_id -> number of tickets
 			$status_ids = [];
-			$statuses = $this->container->get('nextgen.trackers.functions')->get_status($tracker_id);
+			$statuses = $functions->get_status($tracker_id);
 
 			foreach ($statuses as $status)
 			{
@@ -196,15 +225,17 @@ class statistics
 				$status_tickets = (isset($tickets_count[$status['status_id']])) ? $tickets_count[$status['status_id']] : 0;
 
 				$this->template->assign_block_vars('statuses', [
-					'S_CLOSED'	=> $status['ticket_closed'],
-					'NAME'		=> $status['status_name'],
-					'TICKETS'	=> $status_tickets,
+					'S_CLOSED'	    => $status['ticket_closed'],
+					'NAME'		    => $status['status_name'],
+					'TICKETS'	    => $status_tickets,
+                    // URL para filtrar por este estado al hacer clic
+                    'U_STATUS_FILTER' => $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id, 'ticket_status' => (int) $status['status_id']]),
 				]);
 			}
 
 			$this->template->assign_vars([
 				'STATISTICS_EXPLAIN'	=> $this->language->lang('STATISTICS_PROJECT_EXPLAIN', $project['project_name'], $this->config['sitename'], $tracker['tracker_name']),
-				'SEARCH_FILTER'	=> $search_filter,
+				'SEARCH_FILTER'	    => $search_filter,
 
 				'U_TRACKER_STATS'	=> $this->helper->route('nextgen_trackers_controller', ['page' => 'statistics', 't' => (int) $tracker_id]),
 			]);

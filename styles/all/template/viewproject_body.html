@@ -3,18 +3,22 @@
 
 <div class="main wide">
     <h2 class="forum-title">{{ TRACKER_NAME }}</h2>
-
+    
     <div class="panel bg2">
         <div class="inner">
+            <strong>{{ lang('PROJECT') }}{{ lang('COLON') }}</strong> {{ PROJECT_NAME }} &bull;
             <strong>{{ lang('CURRENT_STATUS') }}{{ lang('COLON') }}</strong> {{ STATUS }}
+            {% if PROJECT_DESC %}<br /><em>{{ PROJECT_DESC }}</em>{% endif %}
         </div>
     </div>
 
     <div class="action-bar bar-top">
-        {# Botón para nuevo ticket #}
+        {# Botón para nuevo ticket (visible solo si S_CAN_POST es true) #}
+        {% if S_CAN_POST %}
         <a href="{{ U_POST_NEW_TICKET }}" class="button" title="{{ lang('POST_TICKET') }}">
             <span>{{ lang('BUTTON_NEW_TICKET') }}</span> <i class="icon fa-pencil fa-fw" aria-hidden="true"></i>
         </a>
+        {% endif %}
 
         {# Caja de búsqueda y filtros #}
         <div class="search-box" role="search">

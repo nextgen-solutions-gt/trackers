@@ -174,6 +174,7 @@ class functions
 	{
 		$sql = 'SELECT t.ticket_id, t.status_id, t.ticket_private, t.ticket_title, t.duplicate_id, st.status_name, st.status_id, st.ticket_duplicate, se.severity_colour, c.component_name, t.timestamp_created, t.assigned_user, t.assigned_group,
 			t.user_id AS reporter_id, r.username AS reporter_username, r.user_colour AS reporter_colour,
+			t.user_id AS reporter_id, r.username AS reporter_username, r.user_colour AS reporter_colour,
 			t.user_last_id AS lposter_id, lp.username AS lposter_username, lp.user_colour AS lposter_colour, MAX(tp.post_timestamp) AS lpost_time ' . $this->tickets_sql($tracker, $project_id, $ticket_status);
 		
 		$result = $this->db->sql_query_limit($sql, $this->config['tickets_per_page'], $start);
@@ -269,7 +270,6 @@ class functions
 
 	public function get_ticket_text($ticket_id, $decode_message = false)
 	{
-		// CORRECCIÓN: Concatenación de (int) $ticket_id fuera de las comillas simples
 		$sql = 'SELECT post_id, post_text, bbcode_bitfield, bbcode_uid, bbcode_flags
 			FROM ' . $this->tables['trackers_post'] . '
 			WHERE ticket_id = ' . (int) $ticket_id;
@@ -533,7 +533,10 @@ class functions
 
 	public function set_status($ticket_id, $status_id)
 	{
-		$sql = 'SELECT status_name FROM ' . $this->tables['trackers_status'] . ' st LEFT JOIN ' . $this->tables['trackers_ticket'] . ' t ON t.status_id = st.status_id WHERE t.ticket_id = ' . (int) $ticket_id;
+		// 1. Obtener nombres de estados para el historial
+		$sql = 'SELECT st.status_name FROM ' . $this->tables['trackers_status'] . ' st 
+				INNER JOIN ' . $this->tables['trackers_ticket'] . ' t ON t.status_id = st.status_id 
+				WHERE t.ticket_id = ' . (int) $ticket_id;
 		$result = $this->db->sql_query($sql);
 		$old_status_name = (string) $this->db->sql_fetchfield('status_name');
 		$this->db->sql_freeresult($result);
@@ -543,18 +546,37 @@ class functions
 		$new_status_name = (string) $this->db->sql_fetchfield('status_name');
 		$this->db->sql_freeresult($result);
 
+		// 2. Actualizar Ticket
 		$sql = 'UPDATE ' . $this->tables['trackers_ticket'] . ' SET status_id = ' . (int) $status_id . ' WHERE ticket_id = ' . (int) $ticket_id;
 		$this->db->sql_query($sql);
 
-		$this->add_history($this->language->lang('CHANGED_STATUS', $old_status_name, $new_status_name), $ticket_id, $this->user->data['user_id']);
+		// 3. Guardar en historial procesando el lenguaje correctamente
+		$history_text = sprintf($this->language->lang('CHANGED_STATUS'), $old_status_name, $new_status_name);
+		$this->add_history($history_text, $ticket_id);
 	}
 
 	public function set_severity($ticket_id, $severity_id)
 	{
+		// 1. Obtener nombres de severidades para el historial
+		$sql = 'SELECT sv.severity_name FROM ' . $this->tables['trackers_severity'] . ' sv 
+				INNER JOIN ' . $this->tables['trackers_ticket'] . ' t ON t.severity_id = sv.severity_id 
+				WHERE t.ticket_id = ' . (int) $ticket_id;
+		$result = $this->db->sql_query($sql);
+		$old_severity_name = (string) $this->db->sql_fetchfield('severity_name');
+		$this->db->sql_freeresult($result);
+
+		$sql = 'SELECT severity_name FROM ' . $this->tables['trackers_severity'] . ' WHERE severity_id = ' . (int) $severity_id;
+		$result = $this->db->sql_query($sql);
+		$new_severity_name = (string) $this->db->sql_fetchfield('severity_name');
+		$this->db->sql_freeresult($result);
+
+		// 2. Actualizar Ticket
 		$sql = 'UPDATE ' . $this->tables['trackers_ticket'] . ' SET severity_id = ' . (int) $severity_id . ' WHERE ticket_id = ' . (int) $ticket_id;
 		$this->db->sql_query($sql);
 
-		$this->add_history($this->language->lang('CHANGED_SEVERITY'), $ticket_id, $this->user->data['user_id']);
+		// 3. Guardar en historial procesando el lenguaje correctamente
+		$history_text = sprintf($this->language->lang('CHANGED_SEVERITY'), $old_severity_name, $new_severity_name);
+		$this->add_history($history_text, $ticket_id);
 	}
 
 	public function can_report_private()
@@ -684,7 +706,6 @@ class functions
 		$ticket_id = (int) $ticket_id;
 		$user_id   = (int) $user_id;
 
-		// 1. Obtener datos del ticket para la notificación
 		$sql = 'SELECT ticket_id, project_id, ticket_title FROM ' . $this->tables['trackers_ticket'] . ' WHERE ticket_id = ' . (int) $ticket_id;
 		$result = $this->db->sql_query($sql);
 		$ticket_data = $this->db->sql_fetchrow($result);
@@ -692,7 +713,6 @@ class functions
 
 		if (!$ticket_data) return;
 
-		// 2. Actualizar el asignado en la DB
 		$sql = 'UPDATE ' . $this->tables['trackers_ticket'] . ' SET assigned_user = ' . $user_id . ' WHERE ticket_id = ' . (int) $ticket_id;
 		$this->db->sql_query($sql);
 
@@ -703,7 +723,6 @@ class functions
 			$assigned_name = (string) $this->db->sql_fetchfield('username');
 			$this->db->sql_freeresult($result);
 
-			// 3. DISPARAR NOTIFICACIÓN
 			$ticket_data['assigned_user'] = $user_id;
 			$ticket_data['user_from']     = (int) $this->user->data['user_id'];
 
@@ -715,26 +734,19 @@ class functions
 		$this->add_history($history_entry, $ticket_id);
 	}
 	
-/**
- * Envía notificaciones cuando se publica una respuesta en un ticket
- *
- * @param array $ticket_data Datos del ticket original
- * @param array $post_data   Datos del nuevo post/comentario
- * @return void
- */
-public function notify_reply($ticket_data, $post_data)
-{
-    $notification_manager = $this->container->get('notification_manager');
+	public function notify_reply($ticket_data, $post_data)
+	{
+		$notification_manager = $this->container->get('notification_manager');
 
-    $notification_data = [
-        'ticket_id'     => (int) $ticket_data['ticket_id'],
-        'project_id'    => (int) $ticket_data['project_id'],
-        'ticket_title'  => $ticket_data['ticket_title'],
-        'ticket_author' => (int) $ticket_data['user_id'],
-        'assigned_user' => (int) $ticket_data['assigned_user'],
-        'user_from'     => (int) $this->user->data['user_id'],
-    ];
+		$notification_data = [
+			'ticket_id'     => (int) $ticket_data['ticket_id'],
+			'project_id'    => (int) $ticket_data['project_id'],
+			'ticket_title'  => $ticket_data['ticket_title'],
+			'ticket_author' => (int) $ticket_data['user_id'],
+			'assigned_user' => (int) $ticket_data['assigned_user'],
+			'user_from'     => (int) $this->user->data['user_id'],
+		];
 
-    $notification_manager->add_notifications('nextgen.trackers.notification.type.ticket_reply', $notification_data);
-}
+		$notification_manager->add_notifications('nextgen.trackers.notification.type.ticket_reply', $notification_data);
+	}
 }

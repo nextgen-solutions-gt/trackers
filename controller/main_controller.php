@@ -70,7 +70,10 @@ class main_controller
 	 */
 	public function display($page = 'viewtracker')
 	{
-		$operator_service = 'nextgen.trackers.' . $page;
+		// CORRECCIÓN: Añadimos '.operator.' para coincidir con services.yml
+		// Antes buscaba: nextgen.trackers.statistics (incorrecto)
+		// Ahora busca:   nextgen.trackers.operator.statistics (correcto)
+		$operator_service = 'nextgen.trackers.operator.' . $page;
 
 		if (!$this->container->has($operator_service))
 		{

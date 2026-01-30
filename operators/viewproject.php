@@ -17,6 +17,9 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
  */
 class viewproject
 {
+	/** @var \phpbb\auth\auth */
+	protected $auth;
+
 	/** @var \phpbb\config\config */
 	protected $config;
 
@@ -40,17 +43,10 @@ class viewproject
 
 	/**
 	 * Constructor
-	 *
-	 * @param \phpbb\config\config      $config
-	 * @param ContainerInterface        $container
-	 * @param \phpbb\language\language  $language
-	 * @param \phpbb\controller\helper  $helper
-	 * @param \phpbb\request\request    $request
-	 * @param \phpbb\template\template  $template
-	 * @param \phpbb\user               $user
 	 */
-	public function __construct(\phpbb\config\config $config, ContainerInterface $container, \phpbb\language\language $language, \phpbb\controller\helper $helper, \phpbb\request\request $request, \phpbb\template\template $template, \phpbb\user $user)
+	public function __construct(\phpbb\auth\auth $auth, \phpbb\config\config $config, ContainerInterface $container, \phpbb\language\language $language, \phpbb\controller\helper $helper, \phpbb\request\request $request, \phpbb\template\template $template, \phpbb\user $user)
 	{
+		$this->auth = $auth;
 		$this->config = $config;
 		$this->container = $container;
 		$this->language = $language;
@@ -68,14 +64,22 @@ class viewproject
 		$start = $this->request->variable('start', 0);
 		$ticket_status = $this->request->variable('ticket_status', 0);
 
+		// SEGURIDAD: Verificar si el usuario tiene permiso para ver el tracker
+		if (!$this->auth->acl_get('u_tracker_view'))
+		{
+			trigger_error('NOT_AUTHORISED');
+		}
+
 		$pagination = $this->container->get('pagination');
 
 		$s_hidden_fields = build_hidden_fields(['t' => (int) $tracker_id, 'p' => (int) $project_id]);
 
-		$tracker = $this->container->get('nextgen.trackers.functions')->get_tracker_data($tracker_id);
-		$project = $this->container->get('nextgen.trackers.functions')->get_project_data($project_id);
-		$status = $this->container->get('nextgen.trackers.functions')->get_status($tracker_id);
+		$functions = $this->container->get('nextgen.trackers.functions');
+		$tracker = $functions->get_tracker_data($tracker_id);
+		$project = $functions->get_project_data($project_id);
+		$status = $functions->get_status($tracker_id);
 
+		$status_new = 0;
 		foreach ($status as $status_id => $status_data)
 		{
 			$this->template->assign_block_vars('status_ary', [
@@ -89,14 +93,14 @@ class viewproject
 			}
 		}
 
-		$total_tickets = $this->container->get('nextgen.trackers.functions')->get_total_tickets($tracker, $project_id, $ticket_status);
+		$total_tickets = $functions->get_total_tickets($tracker, $project_id, $ticket_status);
 
 		// Handle pagination
 		$start = $pagination->validate_start($start, $this->config['tickets_per_page'], $total_tickets);
 		$base_url = $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id, 'ticket_status' => (int) $ticket_status]);
 		$pagination->generate_template_pagination($base_url, 'pagination', 'start', $total_tickets, $this->config['tickets_per_page'], $start);
 
-		$this->container->get('nextgen.trackers.functions')->get_tickets($tracker, $project_id, $ticket_status, $start, $status_new);
+		$functions->get_tickets($tracker, $project_id, $ticket_status, $start, $status_new);
 
 		switch ($ticket_status)
 		{
@@ -113,10 +117,12 @@ class viewproject
 			break;
 
 			default:
-				$status = $this->container->get('nextgen.trackers.functions')->get_status_data($ticket_status);
-				$status_name = $status['status_name'];
+				$status_data_single = $functions->get_status_data($ticket_status);
+				$status_name = $status_data_single['status_name'];
 			break;
 		}
+
+		$can_post = ($this->auth->acl_get('u_tracker_post') || $this->auth->acl_get('m_') || $functions->is_team_user($project_id));
 
 		$this->template->assign_vars([
 			'TRACKER_NAME'	=> $tracker['tracker_name'],
@@ -127,8 +133,9 @@ class viewproject
 			'TOTAL_TICKETS'	=> $this->language->lang('TOTAL_TICKETS', $total_tickets),
 
 			'U_ACTION'			=> $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
-			'U_POST_NEW_TICKET'	=> $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => 'post', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
-
+			'U_POST_NEW_TICKET'	=> ($can_post) ? $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => 'post', 't' => (int) $tracker_id, 'p' => (int) $project_id]) : '',
+			
+			'S_CAN_POST'        => $can_post,
 			'S_HIDDEN_FIELDS'	=> $s_hidden_fields,
 		]);
 
@@ -144,7 +151,7 @@ class viewproject
 			],
 		];
 
-		$this->container->get('nextgen.trackers.functions')->generate_navlinks($navlinks);
+		$functions->generate_navlinks($navlinks);
 
 		return $this->helper->render('viewproject_body.html', $tracker['tracker_name']);
 	}
