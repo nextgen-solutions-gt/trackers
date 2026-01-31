@@ -70,7 +70,7 @@
         </div>
         {% endif %}
 
-        {# SECCIÓN DE GESTIÓN (Filtrada por ACL y Relaciones) #}
+        {# SECCIÓN DE GESTIÓN #}
         {% if S_CAN_CHANGE_STATUS or S_CAN_ASSIGN %}
         <div class="panel bg3">
             <div class="inner">
@@ -163,17 +163,28 @@
                     <div class="content">{{ TICKET_TEXT }}</div>
                 </div>
 
+                {# --- ADJUNTOS EN EL MENSAJE PRINCIPAL --- #}
                 {% if TICKET_HAS_ATTACHMENTS %}
-                <dl class="attachments">
-                    <dt>{{ lang('ATTACHMENTS') }}</dt>
-                    {% for attachment in ticket_attachments %}
-                    <dd>
-                        <i class="icon fa-paperclip fa-fw" aria-hidden="true"></i>
-                        <a href="{{ attachment.U_DOWNLOAD }}">{{ attachment.TITLE }}</a> 
-                        <span class="file-size">({{ attachment.FILESIZE }})</span>
-                    </dd>
+                <div class="trackers-attach-section">
+                    <dt style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #666; margin-bottom: 5px;">
+                        {{ lang('ATTACHMENTS') }}
+                    </dt>
+                    {% for attachment in loops.ticket_attachments %}
+                    <div class="trackers-attach-wrapper">
+                        {% if attachment.S_IS_IMAGE %}
+                        <a href="{{ attachment.U_DOWNLOAD }}" class="trackers-thumb-link" target="_blank">
+                            <img src="{{ attachment.U_DOWNLOAD }}" alt="{{ attachment.REAL_FILENAME }}" title="{{ attachment.REAL_FILENAME }}" />
+                        </a>
+                        {% endif %}
+                        
+                        <div class="trackers-attach-info">
+                            <i class="icon fa-paperclip fa-fw" aria-hidden="true"></i>
+                            <a href="{{ attachment.U_DOWNLOAD }}" class="file-name">{{ attachment.REAL_FILENAME }}</a>
+                            <span class="file-size">({{ attachment.FILESIZE }})</span>
+                        </div>
+                    </div>
                     {% endfor %}
-                </dl>
+                </div>
                 {% endif %}
             </div>
         </div>
@@ -226,6 +237,32 @@
                         </ul>
 
                         <div class="content">{{ post.TEXT }}</div>
+
+                        {# --- ADJUNTOS EN LOS COMENTARIOS --- #}
+                        {% if post.attach|length %}
+                        <div class="trackers-attach-section">
+                            <dt style="font-size: 11px; font-weight: bold; text-transform: uppercase; color: #666; margin-bottom: 5px;">
+                                {{ lang('ATTACHMENTS') }}
+                            </dt>
+                            {% for attachment in post.attach %}
+                            <div class="trackers-attach-wrapper">
+                                {% if attachment.S_IS_IMAGE %}
+                                <a href="{{ attachment.U_DOWNLOAD }}" class="trackers-thumb-link" target="_blank">
+                                    <img src="{{ attachment.U_DOWNLOAD }}" alt="{{ attachment.FILE_NAME }}" title="{{ attachment.FILE_NAME }}" />
+                                </a>
+                                {% endif %}
+                                
+                                <div class="trackers-attach-info">
+    <i class="icon fa-paperclip fa-fw" aria-hidden="true"></i>
+    <a href="{{ attachment.U_DOWNLOAD }}" class="file-name" title="{{ attachment.REAL_FILENAME }}">
+        {{ attachment.REAL_FILENAME }}
+    </a>
+    <span class="file-size">({{ attachment.FILESIZE }})</span>
+</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
                     </div>
                 </div>
             </div>

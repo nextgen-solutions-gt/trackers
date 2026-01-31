@@ -2,7 +2,7 @@
 
 <h2 class="posting-title">{{ L_POSTING_TITLE }}</h2>
 
-<form id="postform" method="post" action="{{ U_ACTION }}">
+<form id="postform" method="post" action="{{ U_ACTION }}" enctype="multipart/form-data">
     <input type="hidden" name="t" value="{{ TRACKER_ID }}" />
     <input type="hidden" name="p" value="{{ PROJECT_ID }}" />
     <input type="hidden" name="ticket" value="{{ TICKET_ID }}" />
@@ -14,7 +14,6 @@
             <fieldset class="fields1">
                 {% if ERROR %}<dl><dd class="error">{{ ERROR }}</dd></dl>{% endif %}
 
-                {# Campos específicos de Trackers #}
                 {% if S_NEW_TICKET or S_FIRST_POST %}
                 <dl style="clear: left;">
                     <dt><label for="subject">{{ lang('TITLE') }}{{ lang('COLON') }}</label></dt>
@@ -37,6 +36,22 @@
                 </dl>
 
                 <dl>
+                    <dt><label for="component_id">{{ lang('COMPONENT') }}{{ lang('COLON') }}</label></dt>
+                    <dd>
+                        {% if S_HAS_COMPONENTS %}
+                            <select name="component_id" id="component_id">
+                                <option value="0">{{ lang('SELECT_COMPONENT') }}</option>
+                                {% for comp in loops.components %}
+                                    <option value="{{ comp.ID }}" {% if comp.S_SELECTED %} selected="selected"{% endif %}>{{ comp.NAME }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <span style="color: #bcbcbc; font-style: italic;">{{ lang('NO_COMPONENTS_ASSIGNED') }}</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+
+                <dl>
                     <dt><label for="private">{{ lang('PRIVATE') }}{{ lang('COLON') }}</label></dt>
                     <dd>
                         <label><input type="radio" name="private" value="1" {% if S_PRIVATE %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
@@ -45,7 +60,6 @@
                 </dl>
                 {% endif %}
 
-                {# Integración con botones de posteo estándar de phpBB #}
                 {% set S_SMILIES_ALLOWED_BK = S_SMILIES_ALLOWED %}
                 {% include 'posting_buttons.html' %}
                 {% set S_SMILIES_ALLOWED = S_SMILIES_ALLOWED_BK %}
@@ -66,19 +80,39 @@
                 </div>
 
                 <div id="message-box" class="message-box">
-                    <textarea tabindex="1" name="message" id="message" rows="15" cols="76" onselect="storeCaret(this);" onclick="storeCaret(this);" onselect="storeCaret(this);" onkeyup="storeCaret(this);" onfocus="initInsertions();" class="inputbox" data-bbcode="true">{{ MESSAGE }}</textarea>
+                    <textarea tabindex="1" name="message" id="message" rows="15" cols="76" onselect="storeCaret(this);" onclick="storeCaret(this);" onkeyup="storeCaret(this);" onfocus="initInsertions();" class="inputbox" data-bbcode="true">{{ MESSAGE }}</textarea>
                 </div>
             </fieldset>
         </div>
     </div>
 
+    {# --- PANEL DE ADJUNTOS --- #}
+    {% if S_CAN_ATTACH and not S_EDIT_POST %}
+    <div class="panel bg2" id="attachment-panel">
+        <div class="inner">
+            <fieldset class="fields2">
+                <dl>
+                    <dt><label for="tracker_attachments">{{ lang('UPLOAD_ATTACHMENT') }}{{ lang('COLON') }}</label><br />
+                        <span style="font-size: 0.9em; color: #666;">{{ lang('MAX_ATTACH_SIZE') }}{{ lang('COLON') }} {{ MAX_ATTACH_SIZE }} KiB</span><br />
+                        <span style="font-size: 0.9em; color: #666;">{{ lang('ALLOWED_EXTENSIONS') }}{{ lang('COLON') }} {{ ALLOWED_EXT }}</span>
+                    </dt>
+                    <dd>
+                        {# name con [] para que el request de phpBB lo detecte correctamente #}
+                        <input type="file" name="tracker_attachments" id="tracker_attachments" class="inputbox autowidth" />
+                    </dd>
+                </dl>
+            </fieldset>
+        </div>
+    </div>
+    {% endif %}
+
     <div class="panel bg2">
         <div class="inner">
             <fieldset class="submit-buttons">
-                {{ S_FORM_TOKEN }}
-                <input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
-                <a href="#" onclick="history.go(-1); return false;" class="button2">{{ lang('CANCEL') }}</a>
-            </fieldset>
+				{{ S_FORM_TOKEN }}
+				<input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
+				<a href="{{ U_CANCEL }}" class="button2">{{ lang('CANCEL') }}</a>
+		</fieldset>
         </div>
     </div>
 </form>

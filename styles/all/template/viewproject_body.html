@@ -13,7 +13,7 @@
     </div>
 
     <div class="action-bar bar-top">
-        {# Botón para nuevo ticket (visible solo si S_CAN_POST es true) #}
+        {# Botón para nuevo ticket #}
         {% if S_CAN_POST %}
         <a href="{{ U_POST_NEW_TICKET }}" class="button" title="{{ lang('POST_TICKET') }}">
             <span>{{ lang('BUTTON_NEW_TICKET') }}</span> <i class="icon fa-pencil fa-fw" aria-hidden="true"></i>
@@ -68,7 +68,6 @@
                 </thead>
                 <tbody>
                 {% for ticket in loops.tickets %}
-                    {# Cambio: Se añade una clase 'ticket-private' si el ticket es privado para estilo personalizado #}
                     <tr class="{% if ticket.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}{% if ticket.S_PRIVATE %} ticket-private{% endif %}">
                         <td class="name" style="width: 5%;"><strong>{{ ticket.ID }}</strong></td>
                         <td class="name">
@@ -97,10 +96,19 @@
                             {% if ticket.ASSIGNED %}<strong>{{ ticket.ASSIGNED }}</strong>{% else %}<span class="small">({{ lang('UNASSIGNED') }})</span>{% endif %}
                         </td>
                         <td class="center" style="width: 15%;">
-                            {# El badge de estado ahora usa el color de severidad de forma dinámica #}
-                            <span class="badge" style="background-color: #{{ ticket.SEV_COLOUR }}; padding: 3px 8px; border-radius: 4px; color: #000; font-size: 0.85em; font-weight: bold; border: 1px solid rgba(0,0,0,0.1);">
+                            {# Badge de Estado Principal #}
+                            <span class="badge" style="background-color: #{{ ticket.STATUS_COLOUR }}; padding: 4px 10px; border-radius: 4px; color: #fff; font-size: 0.85em; font-weight: bold; text-shadow: 1px 1px 1px rgba(0,0,0,0.2); display: inline-block; min-width: 90px; text-align: center;">
                                 {{ ticket.STATUS }}
                             </span>
+                            
+                            <!-- // {% if ticket.SEV_NAME %}
+                                <br />
+                                {# Mini-badge de Severidad con la nueva clase severity-pill #}
+                                <span class="severity-pill" style="color: #{{ ticket.SEV_COLOUR }};">
+                                    <i class="icon fa-flash fa-fw" aria-hidden="true"></i> {{ ticket.SEV_NAME }}
+                                </span>
+                            {% endif %} -->
+
                             {% if ticket.DUPLICATE_ID %}
                                 <br /><small>{{ lang('DUPLICATE') }}: <a href="{{ ticket.U_DUPLICATE }}">#{{ ticket.DUPLICATE_ID }}</a></small>
                             {% endif %}
@@ -119,7 +127,6 @@
     </div>
 
     <div class="action-bar bar-bottom">
-        {# Botón de retorno al Tracker #}
         <div class="buttons">
             <a href="{{ U_VIEWTRACKER }}" class="button" title="{{ lang('RETURN_TRACKER') }}">
                 <i class="icon fa-chevron-left fa-fw" aria-hidden="true"></i> <span>{{ lang('RETURN_TRACKER') }}</span>

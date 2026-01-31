@@ -1,11 +1,13 @@
 parameters:
     tables:
-        trackers_attachment: '%core.table_prefix%trackers_attachment'
+        trackers_attachments: '%core.table_prefix%trackers_attachments'
+        trackers_attachments_auth: '%core.table_prefix%trackers_attachments_auth'
         trackers_component: '%core.table_prefix%trackers_component'
         trackers_history: '%core.table_prefix%trackers_history'
         trackers_post: '%core.table_prefix%trackers_post'
         trackers_project: '%core.table_prefix%trackers_project'
         trackers_project_auth: '%core.table_prefix%trackers_project_auth'
+        trackers_relations: '%core.table_prefix%trackers_relations'
         trackers_severity: '%core.table_prefix%trackers_severity'
         trackers_status: '%core.table_prefix%trackers_status'
         trackers_ticket: '%core.table_prefix%trackers_ticket'

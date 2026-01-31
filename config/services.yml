@@ -107,6 +107,7 @@ services:
             - '@request'
             - '@template'
             - '@user'
+            - '@files.upload'
             - '%core.table_prefix%'
             
     nextgen.trackers.notification.type.ticket_assigned:
@@ -127,4 +128,4 @@ services:
             - [set_user_loader, ['@user_loader']]
             - [set_controller_helper, ['@controller.helper']]
         tags:
-            - { name: notification.type }        
+            - { name: notification.type }

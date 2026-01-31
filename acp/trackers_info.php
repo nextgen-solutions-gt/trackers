@@ -10,42 +10,48 @@
 
 namespace nextgen\trackers\acp;
 
+/**
+ * Trackers ACP module info
+ */
 class trackers_info
 {
-    public function module_info()
+    /**
+     * Module information
+     *
+     * @return array
+     */
+    public function module()
     {
         return [
             'filename'  => '\nextgen\trackers\acp\trackers_module',
-            'title'     => 'ACP_TRACKERS',
+            'title'     => 'ACP_TRACKERS_TITLE',
             'modes'     => [
-                'settings' => [
-                    'title' => 'ACP_TRACKERS_SETTINGS', 
-                    'auth'  => 'ext_nextgen/trackers && acl_a_board', 
-                    'cat'   => ['ACP_TRACKERS']
+                'settings'  => [
+                    'title' => 'ACP_TRACKERS_SETTINGS',
+                    'auth'  => 'ext_nextgen/trackers && acl_a_board',
+                    'cat'   => ['ACP_TRACKERS_TITLE']
                 ],
-                'projects' => [
-                    'title' => 'ACP_TRACKERS_PROJECTS', 
-                    'auth'  => 'ext_nextgen/trackers && acl_a_board', 
-                    'cat'   => ['ACP_TRACKERS']
+                'projects'  => [
+                    'title' => 'ACP_TRACKERS_PROJECTS',
+                    'auth'  => 'ext_nextgen/trackers && acl_a_board',
+                    'cat'   => ['ACP_TRACKERS_TITLE']
                 ],
-                // NUEVO: Gestión de Severidades
+                'statuses'  => [
+                    'title' => 'ACP_TRACKERS_STATUSES',
+                    'auth'  => 'ext_nextgen/trackers && acl_a_board',
+                    'cat'   => ['ACP_TRACKERS_TITLE']
+                ],
                 'severities' => [
-                    'title' => 'ACP_TRACKERS_SEVERITIES', 
-                    'auth'  => 'ext_nextgen/trackers && acl_a_board', 
-                    'cat'   => ['ACP_TRACKERS']
+                    'title' => 'ACP_TRACKERS_SEVERITIES',
+                    'auth'  => 'ext_nextgen/trackers && acl_a_board',
+                    'cat'   => ['ACP_TRACKERS_TITLE']
                 ],
-                // NUEVO: Gestión de Estados
-                'statuses' => [
-                    'title' => 'ACP_TRACKERS_STATUSES', 
-                    'auth'  => 'ext_nextgen/trackers && acl_a_board', 
-                    'cat'   => ['ACP_TRACKERS']
+                'components' => [
+                    'title' => 'ACP_TRACKERS_COMPONENTS',
+                    'auth'  => 'ext_nextgen/trackers && acl_a_board',
+                    'cat'   => ['ACP_TRACKERS_TITLE']
                 ],
             ],
         ];
-    }
-
-    public function module()
-    {
-        return $this->module_info();
     }
 }

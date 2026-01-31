@@ -132,3 +132,95 @@ span.post_private {
 
 .icon-red { color: #d32f2f; }
 .ticket-private { background-color: #fff5f5 !important; }
+
+/* Nueva clase para severidades sin interferir con .badge */
+.severity-pill {
+    display: inline-block;
+    margin-top: 5px;
+    padding: 2px 8px;
+    background-color: #f9f9f9; /* Fondo neutro claro */
+    border: 1px solid #e0e0e0; /* Borde sutil para definir la forma */
+    border-radius: 3px;
+    font-size: 0.75em;
+    font-weight: bold;
+    text-transform: uppercase;
+    line-height: 1.2;
+}
+
+.severity-pill i {
+    font-size: 0.9em;
+    margin-right: 2px;
+}
+
+/* Contenedor principal de la sección de adjuntos */
+.trackers-attach-section {
+    margin-top: 15px;
+    padding: 10px;
+    border-top: 1px solid #e1e1e1;
+    background-color: #fcfcfc;
+}
+
+/* Tarjeta individual para cada adjunto */
+.trackers-attach-wrapper {
+    display: inline-block;
+    margin: 10px 10px 10px 0;
+    padding: 8px;
+    background: #ffffff;
+    border: 1px solid #d1d1d1;
+    border-radius: 6px;
+    vertical-align: top;
+    transition: all 0.2s ease-in-out;
+    max-width: 260px;
+}
+
+.trackers-attach-wrapper:hover {
+    border-color: #115098;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Estilo de la miniatura de imagen */
+.trackers-thumb-link img {
+    display: block;
+    max-width: 240px;
+    max-height: 180px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    background-color: #eee;
+}
+
+/* Información del archivo (nombre y tamaño) */
+.trackers-attach-info {
+    font-size: 11px;
+    color: #444;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+/* Modificamos la info para controlar el ancho */
+.trackers-attach-info {
+    font-size: 11px;
+    color: #444;
+    line-height: 1.4;
+    max-width: 100%; /* Asegura que no pase del padre */
+    overflow: hidden; /* Oculta lo que sobrepase */
+}
+
+/* Estilo específico para el nombre del archivo con puntos suspensivos */
+.trackers-attach-info .file-name {
+    font-weight: bold;
+    color: #115098;
+    text-decoration: none;
+    display: block; /* Necesario para el truncado */
+    white-space: nowrap; /* Evita que el texto salte de línea */
+    overflow: hidden; /* Oculta el exceso */
+    text-overflow: ellipsis; /* Agrega los "..." */
+    margin-bottom: 2px;
+}
+
+.trackers-attach-info .file-size {
+    color: #666;
+    font-style: italic;
+    display: block;
+    margin-top: 2px;
+}

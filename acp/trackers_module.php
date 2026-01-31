@@ -24,13 +24,15 @@ class trackers_module
 		$this->tpl_name = 'acp_trackers_body';
 		$this->u_action = append_sid($this->u_action);
 
+		// Definición centralizada de tablas
 		$tables = [
-			'projects'   => $table_prefix . 'trackers_project',
-			'trackers'   => $table_prefix . 'trackers_tracker',
-			'severities' => $table_prefix . 'trackers_severity',
-			'statuses'   => $table_prefix . 'trackers_status',
-			'components' => $table_prefix . 'trackers_component',
-			'relations'  => $table_prefix . 'trackers_relations', 
+			'projects'    => $table_prefix . 'trackers_project',
+			'trackers'    => $table_prefix . 'trackers_tracker',
+			'severities'  => $table_prefix . 'trackers_severity',
+			'statuses'    => $table_prefix . 'trackers_status',
+			'components'  => $table_prefix . 'trackers_component',
+			'relations'   => $table_prefix . 'trackers_relations', 
+			'attach_auth' => $table_prefix . 'trackers_attachments_auth',
 		];
 
 		add_form_key('acp_trackers');
@@ -38,7 +40,7 @@ class trackers_module
 		switch ($mode)
 		{
 			case 'settings':
-				$this->manage_settings();
+				$this->manage_settings($tables);
 			break;
 
 			case 'projects':
@@ -57,6 +59,90 @@ class trackers_module
 				$this->manage_items($tables['components'], 'component', $tables);
 			break;
 		}
+	}
+
+	protected function manage_settings($tables)
+	{
+		global $template, $user, $config, $request, $db;
+
+		// 1. Definición de configuraciones generales (incluyendo nueva ruta y límites)
+		$settings = [
+			'trackers_enable'            => 1,
+			'trackers_per_page'          => 15,
+			'trackers_attachments'       => 1,
+			'trackers_attach_max_size'   => 2048, // KiB
+			'trackers_attach_extensions' => 'jpg,jpeg,png,gif,zip,pdf',
+			'trackers_attach_path'       => 'files/trackers/',
+		];
+
+		if ($request->is_set_post('submit'))
+		{
+			if (!check_form_key('acp_trackers')) trigger_error($user->lang('FORM_INVALID'), E_USER_WARNING);
+			
+			// Guardar configuraciones escalares
+			foreach ($settings as $key => $default)
+			{
+				$value = $request->variable($key, $default, true);
+				$config->set($key, $value);
+			}
+
+			// 2. Guardar Permisos de Adjuntos por Grupo
+			$auth_attach = $request->variable('auth_attach', [0 => 0]); 
+			
+			// Limpiamos permisos globales previos (project_id = 0)
+			$db->sql_query('DELETE FROM ' . $tables['attach_auth'] . ' WHERE project_id = 0');
+			
+			foreach ($auth_attach as $g_id => $can_attach)
+			{
+				if ($can_attach)
+				{
+					$db->sql_query('INSERT INTO ' . $tables['attach_auth'] . ' ' . $db->sql_build_array('INSERT', [
+						'group_id'   => (int) $g_id,
+						'project_id' => 0, 
+						'can_attach' => 1
+					]));
+				}
+			}
+
+			trigger_error($user->lang('SETTINGS_UPDATED') . adm_back_link($this->u_action));
+		}
+
+		// 3. Obtener lista de grupos para la matriz de permisos
+		$sql = 'SELECT group_id, group_name, group_type 
+				FROM ' . GROUPS_TABLE . ' 
+				WHERE group_type <> ' . GROUP_SPECIAL . ' 
+				OR group_name IN ("REGISTERED", "ADMINISTRATORS", "MODERATORS") 
+				ORDER BY group_name ASC';
+		$result = $db->sql_query($sql);
+		
+		$current_auth = [];
+		$sql_auth = 'SELECT group_id FROM ' . $tables['attach_auth'] . ' WHERE project_id = 0 AND can_attach = 1';
+		$res_auth = $db->sql_query($sql_auth);
+		while($row_a = $db->sql_fetchrow($res_auth)) $current_auth[] = $row_a['group_id'];
+		$db->sql_freeresult($res_auth);
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$template->assign_block_vars('groups', [
+				'ID'         => $row['group_id'],
+				'NAME'       => ($row['group_type'] == GROUP_SPECIAL) ? $user->lang('G_' . $row['group_name']) : $row['group_name'],
+				'CAN_ATTACH' => in_array($row['group_id'], $current_auth),
+			]);
+		}
+		$db->sql_freeresult($result);
+
+		$template->assign_vars([
+			'S_MODE_SETTINGS'            => true,
+			'L_TITLE'                    => $user->lang('ACP_TRACKERS_SETTINGS'),
+			'U_ACTION'                   => $this->u_action,
+			
+			'TRACKERS_ENABLE'            => (int) ($config['trackers_enable'] ?? 1),
+			'TRACKERS_PER_PAGE'          => (int) ($config['trackers_per_page'] ?? 15),
+			'TRACKERS_ATTACHMENTS'       => (int) ($config['trackers_attachments'] ?? 1),
+			'TRACKERS_ATTACH_MAX_SIZE'   => (int) ($config['trackers_attach_max_size'] ?? 2048),
+			'TRACKERS_ATTACH_EXTENSIONS' => (string) ($config['trackers_attach_extensions'] ?? 'jpg,jpeg,png,gif,zip,pdf'),
+			'TRACKERS_ATTACH_PATH'       => (string) ($config['trackers_attach_path'] ?? 'files/trackers/'),
+		]);
 	}
 
 	protected function manage_projects($project_table, $tracker_table)
@@ -165,6 +251,7 @@ class trackers_module
 
 		$action = $request->variable('action', '');
 		$id = $request->variable('id', 0);
+		
 		$id_field = $type . '_id';
 		$name_field = $type . '_name';
 		$colour_field = $type . '_colour';
@@ -191,7 +278,6 @@ class trackers_module
 			
 			if ($type != 'component') 
 			{ 
-				// Manejo del color picker: eliminamos el '#' si viene del input type="color"
 				$raw_colour = $request->variable('colour', 'CCCCCC');
 				$sql_ary[$colour_field] = str_replace('#', '', $raw_colour);
 			}
@@ -214,12 +300,15 @@ class trackers_module
 
 			$project_ids = $request->variable('project_ids', [0 => 0]);
 			$db->sql_query("DELETE FROM " . $tables['relations'] . " WHERE item_id = " . (int) $id . " AND item_type = '$type'");
+			
 			foreach ($project_ids as $p_id)
 			{
 				if ($p_id > 0)
 				{
 					$db->sql_query("INSERT INTO " . $tables['relations'] . " " . $db->sql_build_array('INSERT', [
-						'item_id' => (int) $id, 'project_id' => (int) $p_id, 'item_type' => $type
+						'item_id'    => (int) $id, 
+						'project_id' => (int) $p_id, 
+						'item_type'  => $type
 					]));
 				}
 			}
@@ -254,14 +343,16 @@ class trackers_module
 			}
 			$db->sql_freeresult($result);
 
+			$item_colour = ($type != 'component' && isset($row[$colour_field])) ? $row[$colour_field] : 'CCCCCC';
+
 			$template->assign_vars([
 				'S_EDIT_' . strtoupper($type) => true,
 				'L_TITLE'     => ($id) ? $user->lang('EDIT') : $user->lang('ADD'),
-				'ITEM_NAME' => $row[$name_field],
-				'ITEM_COLOUR' => $row[$colour_field] ?? 'CCCCCC', // Valor sin # para la vista
-				'S_CLOSED' => $row['ticket_closed'] ?? 0,
-				'S_NEW' => $row['ticket_new'] ?? 0,
-				'U_BACK' => $this->u_action,
+				'ITEM_NAME'   => $row[$name_field],
+				'ITEM_COLOUR' => $item_colour,
+				'S_CLOSED'    => $row['ticket_closed'] ?? 0,
+				'S_NEW'       => $row['ticket_new'] ?? 0,
+				'U_BACK'      => $this->u_action,
 			]);
 			return;
 		}
@@ -270,9 +361,8 @@ class trackers_module
 		while ($row = $db->sql_fetchrow($result))
 		{
 			$template->assign_block_vars('items', [
-				'NAME' => $row[$name_field],
-				// Enviamos el color a la lista (verificamos si existe la columna)
-				'COLOUR' => isset($row[$colour_field]) ? $row[$colour_field] : '',
+				'NAME'   => $row[$name_field],
+				'COLOUR' => (isset($row[$colour_field])) ? $row[$colour_field] : '', 
 				'U_EDIT' => $this->u_action . '&amp;action=edit&amp;id=' . $row[$id_field],
 				'U_DELETE' => $this->u_action . '&amp;action=delete&amp;id=' . $row[$id_field],
 			]);
@@ -288,17 +378,5 @@ class trackers_module
 			'L_TITLE' => $user->lang('ACP_TRACKERS_' . strtoupper($type) . 'S'), 
 			'U_ACTION' => $this->u_action
 		]);
-	}
-
-	protected function manage_settings()
-	{
-		global $template, $user, $config, $request;
-		if ($request->is_set_post('submit'))
-		{
-			if (!check_form_key('acp_trackers')) trigger_error($user->lang('FORM_INVALID'), E_USER_WARNING);
-			$config->set('trackers_enable', $request->variable('trackers_enable', 0));
-			trigger_error($user->lang('ITEM_UPDATED') . adm_back_link($this->u_action));
-		}
-		$template->assign_vars(['S_MODE_SETTINGS' => true, 'L_TITLE' => $user->lang('ACP_TRACKERS_SETTINGS'), 'TRACKERS_ENABLE' => $config['trackers_enable'] ?? 1, 'U_ACTION' => $this->u_action]);
 	}
 }
