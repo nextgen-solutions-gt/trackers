@@ -14,9 +14,13 @@ class trackers_module
 {
 	public $u_action;
 
+	/**
+	 * Eliminamos el constructor con argumentos para evitar que p_master 
+	 * se inyecte incorrectamente cuando phpBB instancia la clase.
+	 */
 	public function main($id, $mode)
 	{
-		global $request, $template, $user, $db, $table_prefix;
+		global $request, $template, $user, $db, $table_prefix, $phpbb_root_path, $config;
 
 		$user->add_lang_ext('nextgen/trackers', 'common');
 
@@ -24,21 +28,28 @@ class trackers_module
 		$this->tpl_name = 'acp_trackers_body';
 		$this->u_action = append_sid($this->u_action);
 
-		// Definición centralizada de tablas
+		// Definimos las tablas aquí para asegurar que siempre sea un array válido
 		$tables = [
-			'projects'    => $table_prefix . 'trackers_project',
-			'trackers'    => $table_prefix . 'trackers_tracker',
-			'severities'  => $table_prefix . 'trackers_severity',
-			'statuses'    => $table_prefix . 'trackers_status',
-			'components'  => $table_prefix . 'trackers_component',
-			'relations'   => $table_prefix . 'trackers_relations', 
-			'attach_auth' => $table_prefix . 'trackers_attachments_auth',
+			'attachments'      => $table_prefix . 'trackers_attachments',
+			'attach_auth'     => $table_prefix . 'trackers_attachments_auth',
+			'components'       => $table_prefix . 'trackers_component',
+			'posts'            => $table_prefix . 'trackers_post',
+			'projects'         => $table_prefix . 'trackers_project',
+			'severities'       => $table_prefix . 'trackers_severity',
+			'statuses'         => $table_prefix . 'trackers_status',
+			'tickets'          => $table_prefix . 'trackers_ticket',
+			'trackers'         => $table_prefix . 'trackers_tracker',
+			'relations'        => $table_prefix . 'trackers_relations',
 		];
 
 		add_form_key('acp_trackers');
 
 		switch ($mode)
 		{
+			case 'dashboard':
+				$this->manage_dashboard($tables);
+			break;
+
 			case 'settings':
 				$this->manage_settings($tables);
 			break;
@@ -61,91 +72,197 @@ class trackers_module
 		}
 	}
 
-	protected function manage_settings($tables)
-    {
-        global $template, $user, $config, $request, $db;
 
-        // 1. Definición de configuraciones generales (Valores de fábrica/fallback)
-        $settings = [
-            'trackers_enabled'           => 1,
-            'trackers_per_page'          => 15,
-            'trackers_attachments'       => 1,
-            'trackers_attach_max_size'   => 2048, // KiB
-            'trackers_attach_extensions' => 'jpg,jpeg,png,gif,zip,pdf',
-            'trackers_attach_path'       => 'files/trackers/',
-        ];
-
-        if ($request->is_set_post('submit'))
-        {
-            if (!check_form_key('acp_trackers')) trigger_error($user->lang('FORM_INVALID'), E_USER_WARNING);
-            
-            // Guardar configuraciones escalares en la tabla phpbb_config
-            foreach ($settings as $key => $default)
-            {
-                // Leemos del formulario, si no viene nada, usamos el default del array
-                $value = $request->variable($key, $default, true);
-                $config->set($key, $value);
-            }
-
-            // 2. Guardar Permisos de Adjuntos por Grupo
-            $auth_attach = $request->variable('auth_attach', [0 => 0]); 
-            
-            // Limpiamos permisos globales previos (project_id = 0)
-            $db->sql_query('DELETE FROM ' . $tables['attach_auth'] . ' WHERE project_id = 0');
-            
-            foreach ($auth_attach as $g_id => $can_attach)
-            {
-                if ($can_attach)
-                {
-                    $db->sql_query('INSERT INTO ' . $tables['attach_auth'] . ' ' . $db->sql_build_array('INSERT', [
-                        'group_id'   => (int) $g_id,
-                        'project_id' => 0, 
-                        'can_attach' => 1
-                    ]));
-                }
-            }
-
-            trigger_error($user->lang('SETTINGS_UPDATED') . adm_back_link($this->u_action));
-        }
-
-        // 3. Obtener lista de grupos para la matriz de permisos
-        $sql = 'SELECT group_id, group_name, group_type 
-                FROM ' . GROUPS_TABLE . ' 
-                WHERE group_type <> ' . GROUP_SPECIAL . ' 
-                OR group_name IN ("REGISTERED", "ADMINISTRATORS", "MODERATORS") 
-                ORDER BY group_name ASC';
-        $result = $db->sql_query($sql);
+	private function get_github_changelog()
+	{
+		// Cambia esto por la ruta real en tu nuevo repositorio
+		$url = 'https://raw.githubusercontent.com/nextgen-solutions-gt/trackers/3.3/CHANGELOG.md';
+    
+		// Usamos el helper de phpBB para peticiones remotas de forma segura
+		$client = new \GuzzleHttp\Client(['timeout' => 5.0]);
+    
+		try {
+			$response = $client->get($url);
+			$content = $response->getBody()->getContents();
         
-        $current_auth = [];
-        $sql_auth = 'SELECT group_id FROM ' . $tables['attach_auth'] . ' WHERE project_id = 0 AND can_attach = 1';
-        $res_auth = $db->sql_query($sql_auth);
-        while($row_a = $db->sql_fetchrow($res_auth)) $current_auth[] = $row_a['group_id'];
-        $db->sql_freeresult($res_auth);
+			// Opcional: Si usas Markdown, podrías usar un parseador, 
+			// pero para el ACP basta con devolver el texto o procesar saltos de línea.
+			return nl2br(htmlspecialchars($content));
+		} catch (\Exception $e) {
+			return 'Could not load changelog: ' . $e->getMessage();
+		}
+	}
 
-        while ($row = $db->sql_fetchrow($result))
-        {
-            $template->assign_block_vars('groups', [
-                'ID'         => $row['group_id'],
-                'NAME'       => ($row['group_type'] == GROUP_SPECIAL) ? $user->lang('G_' . $row['group_name']) : $row['group_name'],
-                'CAN_ATTACH' => in_array($row['group_id'], $current_auth),
-            ]);
-        }
-        $db->sql_freeresult($result);
+	protected function manage_dashboard($tables)
+	{
+		global $template, $user, $db, $phpbb_root_path, $request;
 
-        // 4. Asignación de variables al template con lógica de prioridad (DB > Fallback)
-        $template->assign_vars([
-            'S_MODE_SETTINGS'            => true,
-            'L_TITLE'                    => $user->lang('ACP_TRACKERS_SETTINGS'),
-            'U_ACTION'                   => $this->u_action,
-            
-            'TRACKERS_ENABLED'           => isset($config['trackers_enabled']) ? (int) $config['trackers_enabled'] : $settings['trackers_enabled'],
-            'TRACKERS_PER_PAGE'          => isset($config['trackers_per_page']) ? (int) $config['trackers_per_page'] : $settings['trackers_per_page'],
-            'TRACKERS_ATTACHMENTS'       => isset($config['trackers_attachments']) ? (int) $config['trackers_attachments'] : $settings['trackers_attachments'],
-            'TRACKERS_ATTACH_MAX_SIZE'   => isset($config['trackers_attach_max_size']) ? (int) $config['trackers_attach_max_size'] : $settings['trackers_attach_max_size'],
-            'TRACKERS_ATTACH_EXTENSIONS' => isset($config['trackers_attach_extensions']) ? (string) $config['trackers_attach_extensions'] : $settings['trackers_attach_extensions'],
-            'TRACKERS_ATTACH_PATH'       => isset($config['trackers_attach_path']) ? (string) $config['trackers_attach_path'] : $settings['trackers_attach_path'],
-        ]);
-    }
+		// --- 1. Sincronización de Tickets ---
+		if ($request->is_set_post('sync'))
+		{
+			if (!check_form_key('acp_trackers')) trigger_error($user->lang('FORM_INVALID'), E_USER_WARNING);
+
+			$sql = 'SELECT project_id FROM ' . $tables['projects'];
+			$result = $db->sql_query($sql);
+			while ($row = $db->sql_fetchrow($result))
+			{
+				$p_id = (int) $row['project_id'];
+				$sql_count = 'SELECT COUNT(ticket_id) as total FROM ' . $tables['tickets'] . ' WHERE project_id = ' . $p_id;
+				$res_count = $db->sql_query($sql_count);
+				$total = (int) $db->sql_fetchfield('total');
+				$db->sql_freeresult($res_count);
+
+				$db->sql_query('UPDATE ' . $tables['projects'] . ' SET project_total_tickets = ' . $total . ' WHERE project_id = ' . $p_id);
+			}
+			$db->sql_freeresult($result);
+			
+			trigger_error($user->lang('TRACKERS_SYNC_COMPLETE') . adm_back_link($this->u_action));
+		}
+
+		// --- 2. Estadísticas ---
+		$stats_queries = [
+			'total'      => 'SELECT COUNT(ticket_id) as res FROM ' . $tables['tickets'],
+			'open'       => 'SELECT COUNT(t.ticket_id) as res FROM ' . $tables['tickets'] . ' t JOIN ' . $tables['statuses'] . ' s ON t.status_id = s.status_id WHERE s.ticket_closed = 0',
+			'closed'     => 'SELECT COUNT(t.ticket_id) as res FROM ' . $tables['tickets'] . ' t JOIN ' . $tables['statuses'] . ' s ON t.status_id = s.status_id WHERE s.ticket_closed = 1',
+			'unanswered' => 'SELECT COUNT(*) as res FROM (SELECT ticket_id FROM ' . $tables['posts'] . ' GROUP BY ticket_id HAVING COUNT(post_id) = 1) AS sub',
+		];
+
+		$counts = [];
+		foreach ($stats_queries as $key => $sql)
+		{
+			$result = $db->sql_query($sql);
+			$counts[$key] = (int) $db->sql_fetchfield('res');
+			$db->sql_freeresult($result);
+		}
+
+		$version_info = $this->get_version_info($phpbb_root_path);
+
+		$template->assign_vars([
+			'S_MODE_DASHBOARD'    => true,
+			'U_ACTION'            => $this->u_action,
+			'TOTAL_TICKETS_COUNT' => $counts['total'],
+			'OPEN_TICKETS'        => $counts['open'],
+			'CLOSED_TICKETS'      => $counts['closed'],
+			'UNANSWERED_TICKETS'  => $counts['unanswered'],
+			'CURRENT_VERSION'     => $version_info['current'],
+			'LATEST_VERSION'      => $version_info['latest'],
+			'U_DOWNLOAD_LATEST'   => $version_info['download'],
+			'U_ANNOUNCEMENT'      => $version_info['announcement'],
+			'S_UP_TO_DATE'        => $version_info['up_to_date'],
+			'CHANGELOG_CONTENT' => $this->get_github_changelog(),
+		]);
+	}
+
+	protected function manage_settings($tables)
+	{
+		global $template, $user, $config, $request, $db, $phpbb_root_path;
+
+		$version_info = $this->get_version_info($phpbb_root_path);
+
+		$settings = [
+			'trackers_enabled'           => 1,
+			'trackers_per_page'          => 15,
+			'trackers_attachments'       => 1,
+			'trackers_attach_max_size'   => 2048,
+			'trackers_attach_extensions' => 'jpg,jpeg,png,gif,zip,pdf',
+			'trackers_attach_path'       => 'files/trackers/',
+		];
+
+		if ($request->is_set_post('submit'))
+		{
+			if (!check_form_key('acp_trackers')) trigger_error($user->lang('FORM_INVALID'), E_USER_WARNING);
+			
+			foreach ($settings as $key => $default)
+			{
+				$value = $request->variable($key, $default, true);
+				$config->set($key, $value);
+			}
+
+			$auth_attach = $request->variable('auth_attach', [0 => 0]); 
+			$db->sql_query('DELETE FROM ' . $tables['attach_auth'] . ' WHERE project_id = 0');
+			
+			foreach ($auth_attach as $g_id => $can_attach)
+			{
+				if ($can_attach)
+				{
+					$db->sql_query('INSERT INTO ' . $tables['attach_auth'] . ' ' . $db->sql_build_array('INSERT', [
+						'group_id'   => (int) $g_id,
+						'project_id' => 0, 
+						'can_attach' => 1
+					]));
+				}
+			}
+			trigger_error($user->lang('SETTINGS_UPDATED') . adm_back_link($this->u_action));
+		}
+
+		$sql = 'SELECT group_id, group_name, group_type FROM ' . GROUPS_TABLE . ' WHERE group_type <> ' . GROUP_SPECIAL . ' OR group_name IN ("REGISTERED", "ADMINISTRATORS", "MODERATORS") ORDER BY group_name ASC';
+		$result = $db->sql_query($sql);
+		
+		$current_auth = [];
+		$res_auth = $db->sql_query('SELECT group_id FROM ' . $tables['attach_auth'] . ' WHERE project_id = 0 AND can_attach = 1');
+		while($row_a = $db->sql_fetchrow($res_auth)) $current_auth[] = $row_a['group_id'];
+		$db->sql_freeresult($res_auth);
+
+		while ($row = $db->sql_fetchrow($result))
+		{
+			$template->assign_block_vars('groups', [
+				'ID'         => $row['group_id'],
+				'NAME'       => ($row['group_type'] == GROUP_SPECIAL) ? $user->lang('G_' . $row['group_name']) : $row['group_name'],
+				'CAN_ATTACH' => in_array($row['group_id'], $current_auth),
+			]);
+		}
+		$db->sql_freeresult($result);
+
+		$template->assign_vars([
+			'S_MODE_SETTINGS'            => true,
+			'L_TITLE'                    => $user->lang('ACP_TRACKERS_SETTINGS'),
+			'U_ACTION'                   => $this->u_action,
+			'CURRENT_VERSION'            => $version_info['current'],
+			'LATEST_VERSION'             => $version_info['latest'],
+			'S_UP_TO_DATE'               => $version_info['up_to_date'],
+			'TRACKERS_ENABLED'           => isset($config['trackers_enabled']) ? (int) $config['trackers_enabled'] : $settings['trackers_enabled'],
+			'TRACKERS_PER_PAGE'          => isset($config['trackers_per_page']) ? (int) $config['trackers_per_page'] : $settings['trackers_per_page'],
+			'TRACKERS_ATTACHMENTS'       => isset($config['trackers_attachments']) ? (int) $config['trackers_attachments'] : $settings['trackers_attachments'],
+			'TRACKERS_ATTACH_MAX_SIZE'   => isset($config['trackers_attach_max_size']) ? (int) $config['trackers_attach_max_size'] : $settings['trackers_attach_max_size'],
+			'TRACKERS_ATTACH_EXTENSIONS' => isset($config['trackers_attach_extensions']) ? (string) $config['trackers_attach_extensions'] : $settings['trackers_attach_extensions'],
+			'TRACKERS_ATTACH_PATH'       => isset($config['trackers_attach_path']) ? (string) $config['trackers_attach_path'] : $settings['trackers_attach_path'],
+		]);
+	}
+
+	private function get_version_info($phpbb_root_path)
+	{
+		$composer_path = $phpbb_root_path . 'ext/nextgen/trackers/composer.json';
+		$current_version = '0.0.0';
+		if (file_exists($composer_path))
+		{
+			$composer_data = json_decode(file_get_contents($composer_path), true);
+			$current_version = $composer_data['version'] ?? '0.0.0';
+		}
+
+		$remote_url = 'https://raw.githubusercontent.com/nextgen-solutions-gt/trackers/3.3/trackers_versions.json';
+		$latest_version = $current_version;
+		$download = $announcement = '';
+
+		$remote_data = @json_decode(@file_get_contents($remote_url), true);
+		if ($remote_data)
+		{
+			$branch = (strpos($current_version, 'RC') !== false) ? 'unstable' : 'stable';
+			if (isset($remote_data[$branch]))
+			{
+				$latest_version = key($remote_data[$branch]);
+				$download = $remote_data[$branch][$latest_version]['download'] ?? '';
+				$announcement = $remote_data[$branch][$latest_version]['announcement'] ?? '';
+			}
+		}
+
+		return [
+			'current'      => $current_version,
+			'latest'       => $latest_version,
+			'download'     => $download,
+			'announcement' => $announcement,
+			'up_to_date'   => version_compare($current_version, $latest_version, '>='),
+		];
+	}
 
 	protected function manage_projects($project_table, $tracker_table)
 	{
@@ -156,7 +273,7 @@ class trackers_module
 
 		if ($request->is_set_post('submit'))
 		{
-			if (!check_form_key('acp_trackers')) trigger_error($user->lang('FORM_INVALID') . adm_back_link($this->u_action), E_USER_WARNING);
+			if (!check_form_key('acp_trackers')) trigger_error($user->lang('FORM_INVALID'), E_USER_WARNING);
 
 			$project_type = $request->variable('project_type', 0);
 			$sql_ary = [

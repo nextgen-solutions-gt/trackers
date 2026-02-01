@@ -85,7 +85,7 @@
 				<form method="post" action="{{ U_ACTION }}">
 					{% if S_CAN_CHANGE_STATUS %}
 					<fieldset style="margin-bottom: 10px;">
-						<label style="font-size: 10px; font-weight: bold; text-transform: uppercase;">{{ lang('CHANGE_STATUS') }}</label>
+						<label style="font-weight: bold; text-transform: uppercase;">{{ lang('CHANGE_STATUS') }}</label>
 						<select name="change_status" onchange="this.form.submit();" style="width: 100%; margin-top: 3px;">
 						{% for status in statuses %}
 							<option value="{{ status.ID }}"{% if status.ID == STATUS_ID %} selected="selected"{% endif %}>{{ status.NAME }}</option>
@@ -94,7 +94,7 @@
 					</fieldset>
 
 					<fieldset style="margin-bottom: 15px;">
-						<label style="font-size: 10px; font-weight: bold; text-transform: uppercase;">{{ lang('CHANGE_SEVERITY') }}</label>
+						<label style="font-weight: bold; text-transform: uppercase;">{{ lang('CHANGE_SEVERITY') }}</label>
 						<select name="change_severity" onchange="this.form.submit();" style="width: 100%; margin-top: 3px;">
 						{% for severity in severities %}
 							<option value="{{ severity.ID }}" {% if severity.ID == SEVERITY_ID %} selected="selected"{% endif %}>{{ severity.NAME }}</option>
@@ -109,22 +109,22 @@
 				<hr style="border-top: 1px dashed #ccc; margin: 15px 0;">
 
 				<fieldset>
-					<label style="font-size: 10px; font-weight: bold; text-transform: uppercase;">{{ lang('ASSIGN_TICKET') }}</label>
+					<label style="font-weight: bold; text-transform: uppercase;">{{ lang('ASSIGN_TICKET') }}</label>
 					<p style="font-size: 11px; margin: 5px 0;">
 						{{ lang('CURRENT_ASSIGNED') }}{{ lang('COLON') }} <strong>{{ ASSIGNED_USER_FULL }}</strong>
 					</p>
 					
-<form method="post" id="viewticket_form" action="{{ U_ACTION }}">
-    <div class="search-box">
-        <fieldset>
-            <input type="text" name="username" id="username" class="inputbox" placeholder="{{ lang('FIND_USERNAME') }}">
-            <div class="search-box-buttons">
-                <button type="submit" name="assign_user" class="button-assign" title="{{ lang('SUBMIT') }}"><i class="icon fa-check fa-fw" aria-hidden="true"></i></button><a href="{{ U_FIND_USER }}" onclick="find_username(this.href); return false;" class="button-search" title="{{ lang('FIND_USERNAME') }}"><i class="icon fa-search fa-fw" aria-hidden="true"></i></a>
-            </div>
-        </fieldset>
-    </div>
-    {{ S_HIDDEN_FIELDS }}
-</form>
+				<form method="post" id="viewticket_form" action="{{ U_ACTION }}">
+					<div class="tracker-search-box">
+						<fieldset>
+							<input type="text" name="username" id="username" class="inputbox" placeholder="{{ lang('FIND_USERNAME') }}">
+							<div class="tracker-search-box-buttons">
+								<button type="submit" name="assign_user" class="tracker-button-assign" title="{{ lang('SUBMIT') }}"><i class="icon fa-check fa-fw" aria-hidden="true"></i></button><a href="{{ U_FIND_USER }}" onclick="find_username(this.href); return false;" class="tracker-button-search" title="{{ lang('FIND_USERNAME') }}"><i class="icon fa-search fa-fw" aria-hidden="true"></i></a>
+							</div>
+						</fieldset>
+					</div>
+					{{ S_HIDDEN_FIELDS }}
+				</form>
 				</fieldset>
 				{% endif %}
 			</div>
@@ -133,22 +133,22 @@
 	</div>
 
 	{# COLUMNA IZQUIERDA: CONTENIDO TICKET #}
-	<div class="main" style="float: left; width: 74%;">
+	<div class="main">
 		
 		<h3 class="ticket-header{% if S_CLOSED %} ticket-closed{% endif %}" style="margin-bottom: 10px; font-size: 1.6em; border-bottom: 2px solid #115098; padding-bottom: 5px;">
 			{% if S_TICKET_PRIVATE %}<i class="icon fa-lock fa-fw" aria-hidden="true" style="color: #bc2a4d;" title="{{ lang('PRIVATE') }}"></i> {% endif %}
 			{% if S_CLOSED %}
-				<span class="badge-status status-cerrado">{{ lang('CLOSED') }}</span>
+				<span class="badge-status status-closed">{{ lang('CLOSED') }}</span>
 			{% else %}
-				<span class="badge-status status-abierto">{{ STATUS_NAME }}</span>
+				<span class="badge-status status-open">{{ STATUS_NAME }}</span>
 			{% endif %}
 			{{ TICKET_TITLE }} 
 		</h3>
 
-		<div id="ticket-box" class="post bg2" style="border: 1px solid #dcdcdc; border-left: 4px solid #115098; border-radius: 0 4px 4px 0;">
+		<div id="ticket-box" class="post bg2">
 			<div class="inner">
-				<div class="postbody wide" style="width: 100%;">
-					<ul class="post-buttons" style="top: 10px; right: 10px;">
+				<div class="postbody wide">
+					<ul class="post-buttons">
 						{% if U_EDIT %}
 						<li>
 							<a href="{{ U_EDIT }}" title="{{ lang('EDIT_TICKET') }}" class="button button-icon-only">
@@ -165,7 +165,7 @@
 						{% endif %}
 					</ul>
 
-					<div class="content" style="font-size: 1.1em; line-height: 1.5; color: #333;">{{ TICKET_TEXT }}</div>
+					<div class="content">{{ TICKET_TEXT }}</div>
 				</div>
 
 				{% if TICKET_HAS_ATTACHMENTS %}
@@ -262,7 +262,35 @@
 				{% endif %}
 			</div>
 		</div>
-		
+<form method="post" action="{U_POST_REPLY_TOPIC}" id="postform" enctype="multipart/form-data">
+		<div class="panel">
+			<div class="inner">
+				<div class="content">
+					<fieldset class="fields1">
+						<h2>{L_QUICK_REPLY}</h2>
+						
+						<div id="message-box">
+							<textarea name="message" id="message" rows="8" cols="76" tabindex="4" class="inputbox" placeholder="{L_MESSAGE}"></textarea>
+						</div>
+
+						<div class="attachment-upload" style="margin-top: 10px; padding: 10px; border: 1px dashed #ccc; background: #f9f9f9;">
+							<label for="fileupload"><strong>{L_UPLOAD_ATTACHMENT}{L_COLON}</strong></label><br />
+							<input type="file" name="fileupload" id="fileupload" class="inputbox autowidth" />
+							<p class="description" style="font-size: 0.9em; color: #666;">
+								{L_MAX_ATTACH_SIZE}{L_COLON} {TRACKERS_ATTACH_MAX_SIZE} {L_KIB} | {L_ALLOWED_EXTENSIONS}{L_COLON} {TRACKERS_ATTACH_EXTENSIONS}
+							</p>
+						</div>
+						{S_FORM_TOKEN}
+						{S_HIDDEN_FIELDS}
+					</fieldset>
+					
+					<fieldset class="submit-buttons" style="margin-top: 15px;">
+						<input type="submit" name="post" value="{L_SUBMIT}" class="button1" />
+					</fieldset>
+				</div>
+			</div>
+		</div>
+	</form>	
 	</div> <div style="clear: both;"></div>
 
 </div>

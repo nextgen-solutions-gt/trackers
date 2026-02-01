@@ -1,11 +1,15 @@
 imports:
     - { resource: tables.yml }
 
-# Definición de variables/strings globales
 parameters:
     nextgen.trackers.tables.prefix: 'phpbb_trackers_'
 
 services:
+    nextgen.trackers.acp.trackers_module:
+        class: nextgen\trackers\acp\trackers_module
+        arguments:
+            - '%nextgen.trackers.tables.prefix%'
+
     nextgen.trackers.functions:
         class: nextgen\trackers\functions
         arguments:

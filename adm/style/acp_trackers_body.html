@@ -1,234 +1,298 @@
 {% include 'overall_header.html' %}
+{% INCLUDECSS '@nextgen_trackers/trackers_admin.css' %} 
 
 <a id="main" name="main"></a>
 
 <h1>{{ lang('ACP_TRACKERS_TITLE') }}</h1>
 <p>{{ lang('ACP_TRACKERS_EXPLAIN') }}</p>
 
-{# --- CONFIGURACIÓN GENERAL --- #}
+{# --- DASHBOARD / STATISTICS --- #}
+{% if S_MODE_DASHBOARD %}
+    {# Version Check #}
+    {% if S_UP_TO_DATE %}
+        <div class="successbox"><p>{{ lang('VERSION_UP_TO_DATE') }} (v{{ CURRENT_VERSION }})</p></div>
+    {% else %}
+        <div class="errorbox">
+            <p><strong>{{ lang('VERSION_NOT_UP_TO_DATE') }}</strong><br />
+            {{ lang('LATEST_VERSION') }}{{ lang('COLON') }} <strong>v{{ LATEST_VERSION }}</strong></p>
+        </div>
+    {% endif %}
+
+		<div style="display: flex; gap: 20px; margin-bottom: 20px;">
+			<div class="panel" style="flex: 1; text-align: center; padding: 20px; border: 1px solid #ccc;">
+				<span style="font-size: 2em; font-weight: bold; color: #28a745;">{{ TOTAL_TICKETS_COUNT }}</span><br />
+				<strong>{{ lang('TOTAL_TICKETS_LBL') }}</strong>
+			</div>
+			<div class="panel" style="flex: 1; text-align: center; padding: 20px; border: 1px solid #ccc;">
+				<span style="font-size: 2em; font-weight: bold; color: #d31141;">{{ UNANSWERED_TICKETS }}</span><br />
+				<strong>{{ lang('UNANSWERED_TICKETS_LBL') }}</strong>
+			</div>
+			<div class="panel" style="flex: 1; text-align: center; padding: 20px; border: 1px solid #ccc;">
+				<span style="font-size: 2em; font-weight: bold; color: #6c757d;">{{ CLOSED_TICKETS }}</span><br />
+				<strong>{{ lang('CLOSED_TICKETS_LBL') }}</strong>
+			</div>
+		</div>
+
+		<form id="acp_sync" method="post" action="{{ U_ACTION }}">
+			<fieldset>
+				<legend>{{ lang('TICKET_SYNC') }}</legend>
+				<p>{{ lang('TICKET_SYNC_EXPLAIN') }}</p>
+				<p class="submit-buttons">
+					<input class="button1" type="submit" name="sync" value="{{ lang('RESYNC_TICKETS') }}" />
+					{{ S_FORM_TOKEN }}
+				</p>
+			</fieldset>
+		</form>
+	<div class="panel">
+		<div class="inner">
+			<fieldset>
+				<legend><i class="icon fa-history fa-fw"></i> {L_CHANGELOG_GITHUB}</legend>
+			
+				<div class="changelog-header">
+					<div>
+						<span class="changelog-dot dot-red"></span>
+						<span class="changelog-dot dot-yellow"></span>
+						<span class="changelog-dot dot-green"></span>
+						<span style="margin-left: 10px; color: #aaa; font-size: 0.85em;">CHANGELOG.md</span>
+					</div>
+					<a href="https://github.com/nextgen-solutions-gt/trackers" target="_blank" style="color: #58a6ff; font-size: 0.85em;">{L_VIEW_ON_GITHUB}</a>
+				</div>
+
+				<div class="changelog-box">
+					{% if CHANGELOG_CONTENT %}
+						{{ CHANGELOG_CONTENT }}
+					{% else %}
+						<span style="color: #ff5f56;">{L_CHANGELOG_ERROR}</span><br />
+						<small style="color: #666;">{{ lang('CHANGELOG_WAITING') }}</small>
+					{% endif %}
+				</div>
+			</fieldset>
+		</div>
+	</div>
+{% endif %}
+
 {% if S_MODE_SETTINGS %}
-    <form id="acp_settings" method="post" action="{{ U_ACTION }}">
-    <fieldset>
-        <legend>{{ lang('GENERAL_SETTINGS') }}</legend>
-        
-        <dl>
-            <dt><label for="trackers_enabled">{{ lang('TRACKERS_ENABLE') }}{{ lang('COLON') }}</label><br /><span>{{ lang('TRACKERS_ENABLE_EXPLAIN') }}</span></dt>
-            <dd>
-                <label><input type="radio" class="radio" name="trackers_enabled" value="1" {% if TRACKERS_ENABLED %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
-                <label><input type="radio" class="radio" name="trackers_enabled" value="0" {% if not TRACKERS_ENABLED %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
-            </dd>
-        </dl>
+	<form id="acp_settings" method="post" action="{{ U_ACTION }}">
+	<fieldset>
+		<legend>{{ lang('GENERAL_SETTINGS') }}</legend>
+		
+		<dl>
+			<dt><label for="trackers_enabled">{{ lang('TRACKERS_ENABLE') }}{{ lang('COLON') }}</label><br /><span>{{ lang('TRACKERS_ENABLE_EXPLAIN') }}</span></dt>
+			<dd>
+				<label><input type="radio" class="radio" name="trackers_enabled" value="1" {% if TRACKERS_ENABLED %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+				<label><input type="radio" class="radio" name="trackers_enabled" value="0" {% if not TRACKERS_ENABLED %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+			</dd>
+		</dl>
 
-        <dl>
-            <dt><label for="trackers_per_page">{{ lang('TRACKERS_PER_PAGE') }}{{ lang('COLON') }}</label><br /><span>{{ lang('TRACKERS_PER_PAGE_EXPLAIN') }}</span></dt>
-            <dd><input type="number" id="trackers_per_page" name="trackers_per_page" value="{{ TRACKERS_PER_PAGE }}" min="1" max="100" class="inputbox autowidth" /></dd>
-        </dl>
+		<dl>
+			<dt><label for="trackers_per_page">{{ lang('TRACKERS_PER_PAGE') }}{{ lang('COLON') }}</label><br /><span>{{ lang('TRACKERS_PER_PAGE_EXPLAIN') }}</span></dt>
+			<dd><input type="number" id="trackers_per_page" name="trackers_per_page" value="{{ TRACKERS_PER_PAGE }}" min="1" max="100" class="inputbox autowidth" /></dd>
+		</dl>
 
-        <h3 style="border-bottom: 1px solid #CCCCCC; margin-top: 20px;">{{ lang('ATTACHMENT_SETTINGS') }}</h3>
+		<h3 style="border-bottom: 1px solid #CCCCCC; margin-top: 20px;">{{ lang('ATTACHMENT_SETTINGS') }}</h3>
 
-        <dl>
-            <dt><label for="trackers_attachments">{{ lang('ALLOW_ATTACHMENTS') }}{{ lang('COLON') }}</label></dt>
-            <dd>
-                <label><input type="radio" class="radio" name="trackers_attachments" value="1" {% if TRACKERS_ATTACHMENTS %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
-                <label><input type="radio" class="radio" name="trackers_attachments" value="0" {% if not TRACKERS_ATTACHMENTS %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
-            </dd>
-        </dl>
+		<dl>
+			<dt><label for="trackers_attachments">{{ lang('ALLOW_ATTACHMENTS') }}{{ lang('COLON') }}</label></dt>
+			<dd>
+				<label><input type="radio" class="radio" name="trackers_attachments" value="1" {% if TRACKERS_ATTACHMENTS %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+				<label><input type="radio" class="radio" name="trackers_attachments" value="0" {% if not TRACKERS_ATTACHMENTS %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+			</dd>
+		</dl>
 
-        <dl>
-            <dt><label for="trackers_attach_path">{{ lang('ATTACH_PATH') }}{{ lang('COLON') }}</label><br /><span>{{ lang('ATTACH_PATH_EXPLAIN') }}</span></dt>
-            <dd><input type="text" id="trackers_attach_path" name="trackers_attach_path" value="{{ TRACKERS_ATTACH_PATH }}" class="inputbox" /></dd>
-        </dl>
+		<dl>
+			<dt><label for="trackers_attach_path">{{ lang('ATTACH_PATH') }}{{ lang('COLON') }}</label><br /><span>{{ lang('ATTACH_PATH_EXPLAIN') }}</span></dt>
+			<dd><input type="text" id="trackers_attach_path" name="trackers_attach_path" value="{{ TRACKERS_ATTACH_PATH }}" class="inputbox" /></dd>
+		</dl>
 
-        <dl>
-            <dt><label for="trackers_attach_max_size">{{ lang('MAX_ATTACH_SIZE') }}{{ lang('COLON') }}</label><br /><span>{{ lang('MAX_ATTACH_SIZE_EXPLAIN') }}</span></dt>
-            <dd><input type="number" id="trackers_attach_max_size" name="trackers_attach_max_size" value="{{ TRACKERS_ATTACH_MAX_SIZE }}" min="0" class="inputbox autowidth" /> {{ lang('KIB') }}</dd>
-        </dl>
+		<dl>
+			<dt><label for="trackers_attach_max_size">{{ lang('MAX_ATTACH_SIZE') }}{{ lang('COLON') }}</label><br /><span>{{ lang('MAX_ATTACH_SIZE_EXPLAIN') }}</span></dt>
+			<dd><input type="number" id="trackers_attach_max_size" name="trackers_attach_max_size" value="{{ TRACKERS_ATTACH_MAX_SIZE }}" min="0" class="inputbox autowidth" /> {{ lang('KIB') }}</dd>
+		</dl>
 
-        <dl>
-            <dt><label for="trackers_attach_extensions">{{ lang('ALLOWED_EXTENSIONS') }}{{ lang('COLON') }}</label><br /><span>{{ lang('ALLOWED_EXTENSIONS_EXPLAIN') }}</span></dt>
-            <dd><input type="text" id="trackers_attach_extensions" name="trackers_attach_extensions" value="{{ TRACKERS_ATTACH_EXTENSIONS }}" class="inputbox" /></dd>
-        </dl>
+		<dl>
+			<dt><label for="trackers_attach_extensions">{{ lang('ALLOWED_EXTENSIONS') }}{{ lang('COLON') }}</label><br /><span>{{ lang('ALLOWED_EXTENSIONS_EXPLAIN') }}</span></dt>
+			<dd><input type="text" id="trackers_attach_extensions" name="trackers_attach_extensions" value="{{ TRACKERS_ATTACH_EXTENSIONS }}" class="inputbox" /></dd>
+		</dl>
 
-        <dl>
-            <dt><label>{{ lang('GROUP_ATTACH_PERMISSIONS') }}{{ lang('COLON') }}</label><br /><span>{{ lang('GROUP_ATTACH_EXPLAIN') }}</span></dt>
-            <dd>
-                <table class="table1 zebra-list">
-                    <thead>
-                        <tr>
-                            <th>{{ lang('GROUP_NAME') }}</th>
-                            <th style="text-align: center; width: 100px;">{{ lang('CAN_UPLOAD_ATTACH') }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    {% for g in groups %}
-                        <tr>
-                            <td><strong>{{ g.NAME }}</strong></td>
-                            <td style="text-align: center;">
-                                <input type="checkbox" name="auth_attach[{{ g.ID }}]" value="1" {% if g.CAN_ATTACH %}checked="checked"{% endif %} />
-                            </td>
-                        </tr>
-                    {% endfor %}
-                    </tbody>
-                </table>
-            </dd>
-        </dl>
+		<dl>
+			<dt><label>{{ lang('GROUP_ATTACH_PERMISSIONS') }}{{ lang('COLON') }}</label><br /><span>{{ lang('GROUP_ATTACH_EXPLAIN') }}</span></dt>
+			<dd>
+				<table class="table1 zebra-list">
+					<thead>
+						<tr>
+							<th>{{ lang('GROUP_NAME') }}</th>
+							<th style="text-align: center; width: 100px;">{{ lang('CAN_UPLOAD_ATTACH') }}</th>
+						</tr>
+					</thead>
+					<tbody>
+					{% for g in groups %}
+						<tr>
+							<td><strong>{{ g.NAME }}</strong></td>
+							<td style="text-align: center;">
+								<input type="checkbox" name="auth_attach[{{ g.ID }}]" value="1" {% if g.CAN_ATTACH %}checked="checked"{% endif %} />
+							</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</dd>
+		</dl>
 
-        <p class="submit-buttons">
-            <input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />
-            {{ S_FORM_TOKEN }}
-        </p>
-    </fieldset>
-    </form>
-
+		<p class="submit-buttons">
+			<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />
+			{{ S_FORM_TOKEN }}
+		</p>
+	</fieldset>
+	</form>
 {# --- EDICIÓN PROYECTO --- #}
 {% elseif S_EDIT_PROJECT %}
-    <form id="acp_edit_project" method="post" action="{{ U_ACTION }}">
-    <fieldset>
-        <legend>{{ L_TITLE }}</legend>
-        
-        {% if S_HAS_PARENTS %}
-        <dl>
-            <dt><label for="parent_id">{{ lang('PARENT_PROJECT') }}{{ lang('COLON') }}</label></dt>
-            <dd><select id="parent_id" name="parent_id">
-                <option value="0">{{ lang('NO_PARENT') }}</option>
-                {% for parent in parent_options %}<option value="{{ parent.ID }}"{% if parent.S_SELECT %} selected="selected"{% endif %}>{{ parent.NAME }}</option>{% endfor %}
-            </select></dd>
-        </dl>
-        {% endif %}
+	<form id="acp_edit_project" method="post" action="{{ U_ACTION }}">
+	<fieldset>
+		<legend>{{ L_TITLE }}</legend>
+		
+		{% if S_HAS_PARENTS %}
+		<dl>
+			<dt><label for="parent_id">{{ lang('PARENT_PROJECT') }}{{ lang('COLON') }}</label></dt>
+			<dd><select id="parent_id" name="parent_id">
+				<option value="0">{{ lang('NO_PARENT') }}</option>
+				{% for parent in parent_options %}<option value="{{ parent.ID }}"{% if parent.S_SELECT %} selected="selected"{% endif %}>{{ parent.NAME }}</option>{% endfor %}
+			</select></dd>
+		</dl>
+		{% endif %}
 
-        <dl>
-            <dt><label for="project_type">{{ lang('PROJECT_TYPE') }}{{ lang('COLON') }}</label></dt>
-            <dd>
-                <label><input type="radio" class="radio" name="project_type" value="0" {% if S_TYPE_CAT %}checked="checked"{% endif %} onclick="document.getElementById('tracker_select').style.display = 'none';" /> {{ lang('CATEGORY') }}</label>
-                <label><input type="radio" class="radio" name="project_type" value="1" {% if S_TYPE_TRACKER %}checked="checked"{% endif %} onclick="document.getElementById('tracker_select').style.display = 'block';" /> {{ lang('TRACKER') }}</label>
-            </dd>
-        </dl>
+		<dl>
+			<dt><label for="project_type">{{ lang('PROJECT_TYPE') }}{{ lang('COLON') }}</label></dt>
+			<dd>
+				<label><input type="radio" class="radio" name="project_type" value="0" {% if S_TYPE_CAT %}checked="checked"{% endif %} onclick="document.getElementById('tracker_select').style.display = 'none';" /> {{ lang('CATEGORY') }}</label>
+				<label><input type="radio" class="radio" name="project_type" value="1" {% if S_TYPE_TRACKER %}checked="checked"{% endif %} onclick="document.getElementById('tracker_select').style.display = 'block';" /> {{ lang('TRACKER') }}</label>
+			</dd>
+		</dl>
 
-        <div id="tracker_select" style="display: {% if S_TYPE_TRACKER %}block{% else %}none{% endif %};">
-            <dl>
-                <dt><label for="tracker_id">{{ lang('TRACKER') }}{{ lang('COLON') }}</label></dt>
-                <dd><select id="tracker_id" name="tracker_id">
-                    {% for tracker in trackers %}<option value="{{ tracker.ID }}"{% if tracker.S_SELECT %} selected="selected"{% endif %}>{{ tracker.NAME }}</option>{% endfor %}
-                </select></dd>
-            </dl>
-        </div>
+		<div id="tracker_select" style="display: {% if S_TYPE_TRACKER %}block{% else %}none{% endif %};">
+			<dl>
+				<dt><label for="tracker_id">{{ lang('TRACKER') }}{{ lang('COLON') }}</label></dt>
+				<dd><select id="tracker_id" name="tracker_id">
+					{% for tracker in trackers %}<option value="{{ tracker.ID }}"{% if tracker.S_SELECT %} selected="selected"{% endif %}>{{ tracker.NAME }}</option>{% endfor %}
+				</select></dd>
+			</dl>
+		</div>
 
-        <dl>
-            <dt><label for="project_name">{{ lang('PROJECT_NAME') }}{{ lang('COLON') }}</label></dt>
-            <dd><input type="text" id="project_name" name="project_name" value="{{ PROJECT_NAME }}" class="inputbox" maxlength="255" /></dd>
-        </dl>
-        <dl>
-            <dt><label for="project_desc">{{ lang('DESCRIPTION') }}{{ lang('COLON') }}</label></dt>
-            <dd><textarea id="project_desc" name="project_desc" rows="3" cols="40">{{ PROJECT_DESC }}</textarea></dd>
-        </dl>
-        <dl>
-            <dt><label for="project_note">{{ lang('PROJECT_NOTE') }}{{ lang('COLON') }}</label></dt>
-            <dd><textarea id="project_note" name="project_note" rows="3" cols="40">{{ PROJECT_NOTE }}</textarea></dd>
-        </dl>
-        <dl>
-            <dt><label for="project_private">{{ lang('PRIVATE') }}{{ lang('COLON') }}</label></dt>
-            <dd>
-                <label><input type="radio" name="project_private" value="1" {% if S_PROJECT_PRIVATE %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
-                <label><input type="radio" name="project_private" value="0" {% if not S_PROJECT_PRIVATE %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
-            </dd>
-        </dl>
+		<dl>
+			<dt><label for="project_name">{{ lang('PROJECT_NAME') }}{{ lang('COLON') }}</label></dt>
+			<dd><input type="text" id="project_name" name="project_name" value="{{ PROJECT_NAME }}" class="inputbox" maxlength="255" /></dd>
+		</dl>
+		<dl>
+			<dt><label for="project_desc">{{ lang('DESCRIPTION') }}{{ lang('COLON') }}</label></dt>
+			<dd><textarea id="project_desc" name="project_desc" rows="3" cols="40">{{ PROJECT_DESC }}</textarea></dd>
+		</dl>
+		<dl>
+			<dt><label for="project_note">{{ lang('PROJECT_NOTE') }}{{ lang('COLON') }}</label></dt>
+			<dd><textarea id="project_note" name="project_note" rows="3" cols="40">{{ PROJECT_NOTE }}</textarea></dd>
+		</dl>
+		<dl>
+			<dt><label for="project_private">{{ lang('PRIVATE') }}{{ lang('COLON') }}</label></dt>
+			<dd>
+				<label><input type="radio" name="project_private" value="1" {% if S_PROJECT_PRIVATE %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+				<label><input type="radio" name="project_private" value="0" {% if not S_PROJECT_PRIVATE %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+			</dd>
+		</dl>
 
-        <p class="submit-buttons">
-            <input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />
-            {{ S_FORM_TOKEN }}
-        </p>
-    </fieldset>
-    </form>
+		<p class="submit-buttons">
+			<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />
+			{{ S_FORM_TOKEN }}
+		</p>
+	</fieldset>
+	</form>
 
 {# --- EDICIÓN ÍTEMS --- #}
 {% elseif S_EDIT_STATUS or S_EDIT_SEVERITY or S_EDIT_COMPONENT %}
-    <form id="acp_edit_item" method="post" action="{{ U_ACTION }}">
-    <fieldset>
-        <legend>{{ L_TITLE }}</legend>
-        <dl>
-            <dt><label for="project_ids">{{ lang('ASSIGN_TO_PROJECTS') }}{{ lang('COLON') }}</label><br /><span>{{ lang('ASSIGN_TO_PROJECTS_EXPLAIN') }}</span></dt>
-            <dd><select id="project_ids" name="project_ids[]" multiple="multiple" size="8">
-                {% for p in projects_list %}<option value="{{ p.ID }}"{% if p.S_SELECTED %} selected="selected"{% endif %}>{{ p.NAME }}</option>{% endfor %}
-            </select></dd>
-        </dl>
-        <dl>
-            <dt><label for="name">{{ lang('NAME') }}{{ lang('COLON') }}</label></dt>
-            <dd><input type="text" id="name" name="name" value="{{ ITEM_NAME }}" class="inputbox" /></dd>
-        </dl>
-        
-        {% if not S_EDIT_COMPONENT %}
-        <dl>
-            <dt><label for="colour">{{ lang('COLOR') }}{{ lang('COLON') }}</label></dt>
-            <dd>
-                <input type="text" id="colour" name="colour" value="{{ ITEM_COLOUR }}" class="inputbox autowidth" maxlength="6" />
-                <input type="color" value="#{{ ITEM_COLOUR }}" onchange="document.getElementById('colour').value = this.value.replace('#', '');" style="height: 25px; vertical-align: middle;" />
-            </dd>
-        </dl>
-        {% endif %}
-        
-        {% if S_EDIT_STATUS %}
-        <dl>
-            <dt><label for="ticket_new">{{ lang('NEW') }}{{ lang('COLON') }}</label></dt>
-            <dd>
-                <label><input type="radio" class="radio" name="ticket_new" value="1" {% if S_NEW %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
-                <label><input type="radio" class="radio" name="ticket_new" value="0" {% if not S_NEW %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
-            </dd>
-        </dl>
-        <dl>
-            <dt><label for="ticket_closed">{{ lang('ALL_CLOSED') }}{{ lang('COLON') }}</label></dt>
-            <dd>
-                <label><input type="radio" class="radio" name="ticket_closed" value="1" {% if S_CLOSED %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
-                <label><input type="radio" class="radio" name="ticket_closed" value="0" {% if not S_CLOSED %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
-            </dd>
-        </dl>
-        {% endif %}
+	<form id="acp_edit_item" method="post" action="{{ U_ACTION }}">
+	<fieldset>
+		<legend>{{ L_TITLE }}</legend>
+		<dl>
+			<dt><label for="project_ids">{{ lang('ASSIGN_TO_PROJECTS') }}{{ lang('COLON') }}</label><br /><span>{{ lang('ASSIGN_TO_PROJECTS_EXPLAIN') }}</span></dt>
+			<dd><select id="project_ids" name="project_ids[]" multiple="multiple" size="8">
+				{% for p in projects_list %}<option value="{{ p.ID }}"{% if p.S_SELECTED %} selected="selected"{% endif %}>{{ p.NAME }}</option>{% endfor %}
+			</select></dd>
+		</dl>
+		<dl>
+			<dt><label for="name">{{ lang('NAME') }}{{ lang('COLON') }}</label></dt>
+			<dd><input type="text" id="name" name="name" value="{{ ITEM_NAME }}" class="inputbox" /></dd>
+		</dl>
+		
+		{% if not S_EDIT_COMPONENT %}
+		<dl>
+			<dt><label for="colour">{{ lang('COLOR') }}{{ lang('COLON') }}</label></dt>
+			<dd>
+				<input type="text" id="colour" name="colour" value="{{ ITEM_COLOUR }}" class="inputbox autowidth" maxlength="6" />
+				<input type="color" value="#{{ ITEM_COLOUR }}" onchange="document.getElementById('colour').value = this.value.replace('#', '');" style="height: 25px; vertical-align: middle;" />
+			</dd>
+		</dl>
+		{% endif %}
+		
+		{% if S_EDIT_STATUS %}
+		<dl>
+			<dt><label for="ticket_new">{{ lang('NEW') }}{{ lang('COLON') }}</label></dt>
+			<dd>
+				<label><input type="radio" class="radio" name="ticket_new" value="1" {% if S_NEW %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+				<label><input type="radio" class="radio" name="ticket_new" value="0" {% if not S_NEW %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+			</dd>
+		</dl>
+		<dl>
+			<dt><label for="ticket_closed">{{ lang('ALL_CLOSED') }}{{ lang('COLON') }}</label></dt>
+			<dd>
+				<label><input type="radio" class="radio" name="ticket_closed" value="1" {% if S_CLOSED %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+				<label><input type="radio" class="radio" name="ticket_closed" value="0" {% if not S_CLOSED %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+			</dd>
+		</dl>
+		{% endif %}
 
-        <p class="submit-buttons">
-            <input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />
-            {{ S_FORM_TOKEN }}
-        </p>
-    </fieldset>
-    </form>
+		<p class="submit-buttons">
+			<input class="button1" type="submit" id="submit" name="submit" value="{{ lang('SUBMIT') }}" />
+			{{ S_FORM_TOKEN }}
+		</p>
+	</fieldset>
+	</form>
 
 {# --- LISTADOS --- #}
 {% elseif S_MODE_PROJECTS or S_MODE_STATUSES or S_MODE_SEVERITIES or S_MODE_COMPONENTS %}
-    <table class="table1 zebra-list">
-        <thead>
-            <tr>
-                <th>{{ lang('NAME') }}</th>
-                {% if S_MODE_PROJECTS %}<th>{{ lang('TYPE') }}</th>{% endif %}
-                {% if S_MODE_STATUSES or S_MODE_SEVERITIES %}<th>{{ lang('COLOR') }}</th>{% endif %}
-                <th style="width: 100px;">{{ lang('ACTION') }}</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% set loop_items = S_MODE_PROJECTS ? projects : items %}
-        {% for item in loop_items %}
-            <tr>
-                <td><strong>{{ item.NAME|raw }}</strong></td>
-                {% if S_MODE_PROJECTS %}<td>{{ item.TYPE }}</td>{% endif %}
-                {% if S_MODE_STATUSES or S_MODE_SEVERITIES %}
-                    <td>
-                        {% if item.COLOUR %}
-                            <span style="display:inline-block; width:15px; height:15px; background-color:#{{ item.COLOUR }}; border:1px solid #000; vertical-align:middle; margin-right:5px;"></span> #{{ item.COLOUR }}
-                        {% else %}
-                            ---
-                        {% endif %}
-                    </td>
-                {% endif %}
-                <td style="text-align: center;"><a href="{{ item.U_EDIT }}">{{ lang('EDIT') }}</a> | <a href="{{ item.U_DELETE }}">{{ lang('DELETE') }}</a></td>
-            </tr>
-        {% else %}
-            <tr><td colspan="4" class="row3" style="text-align: center;">{{ lang('NO_ITEMS') }}</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <form method="post" action="{{ U_ACTION }}">
-        <fieldset class="submit-buttons">
-            <input class="button1" type="submit" id="add" name="add" value="{{ S_MODE_PROJECTS ? lang('ADD_PROJECT') : lang('ADD') }}" />
-            {{ S_FORM_TOKEN }}
-        </fieldset>
-    </form>
+	<table class="table1 zebra-list">
+		<thead>
+			<tr>
+				<th>{{ lang('NAME') }}</th>
+				{% if S_MODE_PROJECTS %}<th>{{ lang('TYPE') }}</th>{% endif %}
+				{% if S_MODE_STATUSES or S_MODE_SEVERITIES %}<th>{{ lang('COLOR') }}</th>{% endif %}
+				<th style="width: 100px;">{{ lang('ACTION') }}</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% set loop_items = S_MODE_PROJECTS ? projects : items %}
+		{% for item in loop_items %}
+			<tr>
+				<td><strong>{{ item.NAME|raw }}</strong></td>
+				{% if S_MODE_PROJECTS %}<td>{{ item.TYPE }}</td>{% endif %}
+				{% if S_MODE_STATUSES or S_MODE_SEVERITIES %}
+					<td>
+						{% if item.COLOUR %}
+							<span style="display:inline-block; width:15px; height:15px; background-color:#{{ item.COLOUR }}; border:1px solid #000; vertical-align:middle; margin-right:5px;"></span> #{{ item.COLOUR }}
+						{% else %}
+							---
+						{% endif %}
+					</td>
+				{% endif %}
+				<td style="text-align: center;"><a href="{{ item.U_EDIT }}">{{ lang('EDIT') }}</a> | <a href="{{ item.U_DELETE }}">{{ lang('DELETE') }}</a></td>
+			</tr>
+		{% else %}
+			<tr><td colspan="4" class="row3" style="text-align: center;">{{ lang('NO_ITEMS') }}</td></tr>
+		{% endfor %}
+		</tbody>
+	</table>
+	<form method="post" action="{{ U_ACTION }}">
+		<fieldset class="submit-buttons">
+			<input class="button1" type="submit" id="add" name="add" value="{{ S_MODE_PROJECTS ? lang('ADD_PROJECT') : lang('ADD') }}" />
+			{{ S_FORM_TOKEN }}
+		</fieldset>
+	</form>
 {% endif %}
 
 {% include 'overall_footer.html' %}

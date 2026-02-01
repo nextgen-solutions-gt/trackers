@@ -1,9 +1,9 @@
 {
     "unstable": {
         "3.3": {
-			"current": "1.0.0-RC1",
-		    "download": "",
-            "announcement": "",
+			"current": "v1.0.0-RC2",
+			"download": "https://github.com/nextgen-solutions-gt/trackers/archive/refs/tags/v1.0.0-RC2.zip",
+            "announcement": "https://github.com/nextgen-solutions-gt/trackers/releases/tag/v1.0.0-RC2",
             "eol": null,
             "security": false
         }

@@ -208,14 +208,13 @@ tr.reported {
 		font-size: 1.6em;
 	}
 }
-/* --- Barra de Búsqueda de Asignación Compacta y Alineada --- */
-.search-box {
+.tracker-search-box {
     display: inline-block; /* Evita que ocupe todo el ancho */
     width: 100%; /* Permite que el contenedor padre maneje el ancho en móviles */
     max-width: 300px; /* Ancho máximo para que no se vea gigante */
 }
 
-.search-box fieldset {
+.tracker-search-box fieldset {
     display: flex !important;
     flex-direction: row !important;
     align-items: stretch !important;
@@ -228,10 +227,9 @@ tr.reported {
     box-sizing: border-box;
 }
 
-.search-box .inputbox {
+.tracker-search-box .inputbox {
     border: none !important;
     padding: 5px 10px !important;
-    height: 30px !important;
     flex: 1 1 auto !important; /* El input se ajusta al espacio restante */
     min-width: 0 !important; 
     box-shadow: none !important;
@@ -239,14 +237,14 @@ tr.reported {
     background: transparent !important;
 }
 
-.search-box-buttons {
+.tracker-search-box-buttons {
     display: flex;
     flex: 0 0 auto; /* Los botones mantienen su ancho fijo */
 }
 
 /* Alineación de los botones internos */
-.search-box .button-assign, 
-.search-box .button-search {
+.tracker-search-box .tracker-button-assign, 
+.tracker-search-box .tracker-button-search {
     margin: 0 !important;
     border: none !important;
     border-left: 1px solid #ccc !important;
@@ -262,13 +260,13 @@ tr.reported {
     box-sizing: border-box;
 }
 
-.search-box .button-assign:hover, 
-.search-box .button-search:hover {
+.tracker-search-box .tracker-button-assign:hover, 
+.tracker-search-box .tracker-button-search:hover {
     background: #e5e5e5 !important;
 }
 
 /* Iconos dentro de los botones */
-.search-box .icon {
+.tracker-search-box .icon {
     margin: 0 !important;
     padding: 0 !important;
 }
@@ -293,13 +291,11 @@ tr.reported {
 .status-espera, .status-pending { background-color: #ffc107; color: #333 !important; } /* Amarillo */
 .status-rechazado, .status-rejected { background-color: #dc3545; } /* Rojo */
 
-/* --- Mejoras de Diseño en Comentarios --- */
-.postbody .content {
-    font-family: "Segoe UI", Arial, sans-serif;
-    line-height: 1.6;
+.stats-button {
+	background-color: #f1f8ff; /* Un tono azulado muy suave */
+	border-color: #c8e1ff;
 }
 
-.reported-private {
-    border-color: #bc2a4d !important;
-    background-color: #fff5f7 !important;
+.stats-button i {
+	color: inherit;
 }

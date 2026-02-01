@@ -19,7 +19,16 @@ if (empty($lang) || !is_array($lang))
 }
 
 $lang = array_merge($lang, [
+	// Version Check
+	'VERSION_UP_TO_DATE'        => 'Extension is up to date',
+	'VERSION_NOT_UP_TO_DATE'    => 'A new version is available',
+	'CURRENT_VERSION'           => 'Current version',
+	'LATEST_VERSION'            => 'Latest version',
+	'DOWNLOAD_LATEST'           => 'Download latest version',
+	'VIEW_ANNOUNCEMENT'         => 'View announcement',
+
     // ACP entries
+	'ACP_TRACKERS_DASHBOARD' 	 => 'Dashboard',
     'ACP_TRACKERS'               => 'Trackers',
     'ACP_TRACKERS_TITLE'         => 'Tracker Management',
     'ACP_TRACKERS_SETTINGS'      => 'General Settings',
@@ -90,6 +99,7 @@ $lang = array_merge($lang, [
     // Viewtracker / Viewproject
     'MANAGE_PROJECTS'        => 'Manage Projects',
     'PROJECT_NAME'           => 'Project Name',
+    'TRACKER_NAME'           => 'Tracker name',
     'ADD_PROJECT'            => 'Add New Project',
     'EDIT_PROJECT'           => 'Edit Project',
     'NO_PROJECTS'            => 'There are no projects available for this tracker.',
@@ -181,10 +191,28 @@ $lang = array_merge($lang, [
         1    => '1 post',
         2    => '%d posts',
     ],
+
+	// Dashboard Sync
+    'TRACKERS_SYNC_COMPLETE'    => 'Ticket counters and projects have been successfully resynchronized.',
+    'TICKET_SYNC'               => 'Ticket Synchronization',
+    'TICKET_SYNC_EXPLAIN'       => 'This process recalculates the ticket counters for each project to ensure data integrity.',
+    'RESYNC_TICKETS'            => 'Resynchronize now',
+
+    // Dashboard Statistics Labels (Estáticas para evitar el error de plurales)
+    'TOTAL_TICKETS_LBL'         => 'Total Tickets',
+    'UNANSWERED_TICKETS_LBL'    => 'Unanswered Tickets',
+    'CLOSED_TICKETS_LBL'        => 'Closed Tickets',
+    'OPEN_TICKETS_LBL'          => 'Open Tickets',
     
     'NOTIFICATION_GROUP_TRACKERS'           => 'Trackers Notifications',
     'NOTIFICATION_TYPE_TRACKERS_ASSIGNED'   => 'A ticket is assigned to you',
     'NOTIFICATION_TICKET_ASSIGNED'          => '%1$s assigned a ticket to you: <strong>%2$s</strong>',
     'NOTIFICATION_TYPE_TRACKERS_REPLY'      => 'A reply is posted in a ticket you are involved in',
     'NOTIFICATION_TICKET_REPLY'             => '%1$s replied to the ticket: <strong>%2$s</strong>',
+
+	'CHANGELOG_GITHUB' => 'GitHub Activity & Updates',
+	'CHANGELOG_ERROR' => 'Could not connect to GitHub or file not found.',
+	'CHANGELOG_ERROR'   => 'Error: CHANGELOG.md file not found.',
+    'CHANGELOG_WAITING' => 'Waiting for remote synchronization with the GitHub repository...',
+	'VIEW_ON_GITHUB' => 'Ver en GitHub',
 ]);

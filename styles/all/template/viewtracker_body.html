@@ -3,85 +3,81 @@
 {% if S_TRACKER_ENABLED %}
 {% INCLUDECSS '@nextgen_trackers/common.css' %}
 
-<div class="extras">
-    <div class="mini-panel">
-        <div class="inner">
-            <h3>{{ TRACKER_NAME }}</h3>
-            <ul class="menu">
-                <li><a href="{{ U_STATISTICS }}"><i class="icon fa-bar-chart fa-fw" aria-hidden="true"></i> {{ lang('STATISTICS') }}</a></li>
-            </ul>
-        </div>
-    </div>
-</div>
+	<h2 class="forum-title">{{ TRACKER_NAME }}</h2>
 
-<div class="main">
-    <h2 class="forum-title">
-        {% if S_TRACKER_PRIVATE %}<i class="icon fa-lock fa-fw" aria-hidden="true" title="{{ lang('TRACKER_PRIVATE') }}"></i> {% endif %}
-        {{ TRACKER_NAME }}
-    </h2>
+	<div class="panel bg2">
+		<div class="inner">
+			<strong>{{ lang('TRACKER_NAME') }}{{ lang('COLON') }}</strong> {{ TRACKER_NAME }}
+			{% if TRACKER_DESC %}<br />{{ TRACKER_DESC }}{% endif %}
+		</div>
+	</div>
 
-    <p>{{ lang('TRACKER_EXPLAIN') }}</p>
-    
-    {% if S_TRACKER_PRIVATE %}
-        <div class="rules">
-            <div class="inner">
-                <strong>{{ lang('TRACKER_PRIVATE') }}</strong>
-            </div>
-        </div>
-    {% endif %}
+	<div class="action-bar bar-top">
 
-    <div class="forabg">
-        <div class="inner">
-            <table class="table1" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th class="name" style="width: 30%;">{{ lang('PROJECT') }}</th>
-                        <th class="name">{{ lang('DESCRIPTION') }}</th>
-                        <th class="center" style="width: 15%;">{{ lang('TRACKERS') }}</th>
-                    </tr>
-                </thead>
-                <tbody>
-                {% if projects|length %}
-                    {% for project in projects %}
-                    <tr class="{% if project.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}">
-                        <td class="name">
-                            <a href="{{ project.U_VIEWPROJECT }}" class="topictitle">{{ project.PROJECT_NAME }}</a>
-                        </td>
-                        <td class="name">
-                            <div class="project-description">{{ project.DESCRIPTION }}</div>
-                        </td>
-                        <td class="center">
-                            <span class="sub-badge" style="background: #e1e4e8; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 0.9em;">
-                                {{ project.TOTAL_TICKETS }}
-                            </span>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                {% else %}
-                    <tr class="bg1">
-                        <td colspan="3" class="error" style="text-align: center; padding: 20px;">
-                            <i class="icon fa-exclamation-triangle fa-fw" aria-hidden="true"></i> {{ lang('NO_PROJECTS') }}
-                        </td>
-                    </tr>
-                {% endif %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+		<div class="buttons">
+			<a href="{{ U_STATISTICS }}" class="button button-secondary stats-button" title="{{ lang('STATISTICS') }}">
+				<i class="icon fa-bar-chart fa-fw" aria-hidden="true"></i> <span>{{ lang('STATISTICS') }}</span>
+			</a>
+		</div>
 
-    <div class="action-bar bottom">
-        <div class="buttons">
-            <a href="{{ U_INDEX }}" class="button">
-                <i class="icon fa-angle-left fa-fw" aria-hidden="true"></i><span>{{ lang('RETURN_INDEX')|default('Return to Index') }}</span>
-            </a>
-        </div>
-    </div>
-</div>
+		<div class="pagination">
+			&bull; {{ projects|length }} {{ lang('PROJECTS') }}
+		</div>
+	</div>
+
+	<div class="forabg">
+		<div class="inner">
+			<table class="table1" id="trackers_table">
+				<thead>
+					<tr>
+						<th class="name" style="width: 40%;">{{ lang('PROJECT') }}</th>
+						<th class="name">{{ lang('DESCRIPTION') }}</th>
+						<th class="center" style="width: 15%;">{{ lang('TRACKERS') }}</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% if projects|length %}
+					{% for project in projects %}
+						<tr class="{% if project.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}">
+							<td class="name">
+								<div class="list-inner">
+									<a href="{{ project.U_VIEWPROJECT }}" class="topictitle">{{ project.PROJECT_NAME }}</a>
+								</div>
+							</td>
+							<td class="name">
+								<div class="project-description small">{{ project.DESCRIPTION }}</div>
+							</td>
+							<td class="center">
+								<span class="sub-badge-vt" style="background: #e1e4e8; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 0.9em; color: #333;">
+									{{ project.TOTAL_TICKETS }}
+								</span>
+							</td>
+						</tr>
+					{% endfor %}
+				{% else %}
+					<tr class="bg1">
+						<td colspan="3" class="center" style="padding: 20px;">
+							<i class="icon fa-exclamation-triangle fa-fw" aria-hidden="true"></i> {{ lang('NO_PROJECTS') }}
+						</td>
+					</tr>
+				{% endif %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="action-bar bar-bottom">
+		<div class="buttons">
+			<a href="{{ U_INDEX }}" class="button" title="{{ lang('RETURN_INDEX') }}">
+				<i class="icon fa-chevron-left fa-fw" aria-hidden="true"></i> <span>{{ lang('RETURN_INDEX') }}</span>
+			</a>
+		</div>
+	</div>
+
 {% else %}
-    <div class="rules">
-        <div class="inner">
-            {{ lang('TRACKER_DISABLED') }}
-        </div>
-    </div>
+	<div class="rules">
+		<div class="inner">{{ lang('TRACKER_DISABLED') }}</div>
+	</div>
 {% endif %}
+
 {% include 'overall_footer.html' %}
