@@ -13,12 +13,12 @@
  */
 if (!defined('IN_PHPBB'))
 {
-	exit;
+    exit;
 }
 
 if (empty($lang) || !is_array($lang))
 {
-	$lang = [];
+    $lang = [];
 }
 
 // DEVELOPERS PLEASE NOTE
@@ -38,13 +38,24 @@ if (empty($lang) || !is_array($lang))
 //
 
 $lang = array_merge($lang, [
-	'ACL_CAT_TRACKERS'	=> 'Trackers',
+    'ACL_CAT_TRACKERS'      => 'Trackers',
 
-	'ACL_U_TRACKER_POST'	=> 'Can create new tickets',
-	'ACL_U_TRACKER_EDIT'	=> 'Can edit own tickets',
-	'ACL_U_TRACKER_DELETE'	=> 'Can delete own tickets',
-	'ACL_U_TRACKER_REPLY'	=> 'Can reply to tickets',
+    // User permissions (u_)
+    'ACL_U_TRACKER_VIEW'         => 'Can view the tracker and project lists',
+    'ACL_U_TRACKER_CREATE'       => 'Can create new tickets',
+    'ACL_U_TRACKER_REPLY'        => 'Can reply to tickets',
+    'ACL_U_TRACKER_EDIT'         => 'Can edit own tickets',
+    'ACL_U_TRACKER_DELETE'       => 'Can delete own tickets',
+    'ACL_U_TRACKER_CLOSE'        => 'Can close own tickets',
+    'ACL_U_TRACKER_VIEW_PRIVATE' => 'Can view private tickets',
 
-	'ACL_M_TRACKER_EDIT'	=> 'Can edit tickets',
-	'ACL_M_TRACKER_DELETE'	=> 'Can delete tickets',
+    // Moderator permissions (m_)
+    'ACL_M_TRACKER_EDIT'   => 'Can edit any ticket',
+    'ACL_M_TRACKER_DELETE' => 'Can delete any ticket',
+    'ACL_M_TRACKER_STATUS' => 'Can change ticket status or severity',
+    'ACL_M_TRACKER_ASSIGN' => 'Can assign tickets to users/groups',
+    'ACL_M_TRACKER_LOGS'   => 'Can view ticket history logs',
+
+    // Admin permissions (a_)
+    'ACL_A_TRACKERS'       => 'Can manage tracker settings and structures',
 ]);

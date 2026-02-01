@@ -152,75 +152,154 @@ span.post_private {
     margin-right: 2px;
 }
 
-/* Contenedor principal de la sección de adjuntos */
-.trackers-attach-section {
-    margin-top: 15px;
-    padding: 10px;
-    border-top: 1px solid #e1e1e1;
-    background-color: #fcfcfc;
+/* Asegura que los contenedores de adjuntos no se desborden */
+.inline-attachment, .attachbox {
+    max-width: 100%;
+    overflow: hidden;
 }
 
-/* Tarjeta individual para cada adjunto */
-.trackers-attach-wrapper {
+/* Redimensión automática de imágenes adjuntas */
+.postimage {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin-top: 5px;
+}
+
+/* Ajuste específico para que el contenedor dl no fuerce anchos fijos */
+dl.file {
+    max-width: 100%;
     display: inline-block;
-    margin: 10px 10px 10px 0;
-    padding: 8px;
-    background: #ffffff;
-    border: 1px solid #d1d1d1;
-    border-radius: 6px;
-    vertical-align: top;
-    transition: all 0.2s ease-in-out;
-    max-width: 260px;
 }
 
-.trackers-attach-wrapper:hover {
-    border-color: #115098;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transform: translateY(-2px);
+/* Badge de estado minimalista (estilo phpBB) */
+.badge-phpbb {
+	display: inline-block;
+	padding: 2px 6px;
+	color: #fff;
+	font-size: 10px;
+	font-weight: bold;
+	text-transform: uppercase;
+	border-radius: 3px;
+	text-align: center;
+	min-width: 80px;
+	line-height: 1.2;
 }
 
-/* Estilo de la miniatura de imagen */
-.trackers-thumb-link img {
-    display: block;
-    max-width: 240px;
-    max-height: 180px;
+/* Ajustes para Ticket Privado (usando color de reporte de phpBB) */
+tr.reported {
+	background-color: #f7ecef !important;
+}
+
+/* Responsividad mínima para evitar desbordamientos */
+@media (max-width: 700px) {
+	#trackers_table th:nth-child(2), 
+	#trackers_table td:nth-child(2),
+	#trackers_table th:nth-child(3), 
+	#trackers_table td:nth-child(3) {
+		display: none; /* Ocultamos Componente y Asignado en móviles muy pequeños */
+	}
+	
+	#trackers_table th, #trackers_table td {
+		width: auto !important;
+	}
+	
+	.forum-title {
+		font-size: 1.6em;
+	}
+}
+/* --- Barra de Búsqueda de Asignación Compacta y Alineada --- */
+.search-box {
+    display: inline-block; /* Evita que ocupe todo el ancho */
+    width: 100%; /* Permite que el contenedor padre maneje el ancho en móviles */
+    max-width: 300px; /* Ancho máximo para que no se vea gigante */
+}
+
+.search-box fieldset {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: stretch !important;
+    background: #fff;
+    border: 1px solid #ccc;
     border-radius: 4px;
-    margin-bottom: 8px;
-    background-color: #eee;
+    overflow: hidden;
+    padding: 0 !important;
+    margin: 0 !important;
+    box-sizing: border-box;
 }
 
-/* Información del archivo (nombre y tamaño) */
-.trackers-attach-info {
-    font-size: 11px;
-    color: #444;
-    line-height: 1.4;
-    word-wrap: break-word;
+.search-box .inputbox {
+    border: none !important;
+    padding: 5px 10px !important;
+    height: 30px !important;
+    flex: 1 1 auto !important; /* El input se ajusta al espacio restante */
+    min-width: 0 !important; 
+    box-shadow: none !important;
+    margin: 0 !important;
+    background: transparent !important;
 }
 
-/* Modificamos la info para controlar el ancho */
-.trackers-attach-info {
-    font-size: 11px;
-    color: #444;
-    line-height: 1.4;
-    max-width: 100%; /* Asegura que no pase del padre */
-    overflow: hidden; /* Oculta lo que sobrepase */
+.search-box-buttons {
+    display: flex;
+    flex: 0 0 auto; /* Los botones mantienen su ancho fijo */
 }
 
-/* Estilo específico para el nombre del archivo con puntos suspensivos */
-.trackers-attach-info .file-name {
+/* Alineación de los botones internos */
+.search-box .button-assign, 
+.search-box .button-search {
+    margin: 0 !important;
+    border: none !important;
+    border-left: 1px solid #ccc !important;
+    border-radius: 0 !important;
+    background: #f1f1f1 !important;
+    height: 30px !important;
+    width: 32px !important; /* Ancho fijo para alineación perfecta */
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 0 !important;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.search-box .button-assign:hover, 
+.search-box .button-search:hover {
+    background: #e5e5e5 !important;
+}
+
+/* Iconos dentro de los botones */
+.search-box .icon {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+/* --- Badges de Estado Automáticos --- */
+/* Estilo base para todos los estados */
+.badge-status {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 3px;
+    font-size: 10px;
     font-weight: bold;
-    color: #115098;
-    text-decoration: none;
-    display: block; /* Necesario para el truncado */
-    white-space: nowrap; /* Evita que el texto salte de línea */
-    overflow: hidden; /* Oculta el exceso */
-    text-overflow: ellipsis; /* Agrega los "..." */
-    margin-bottom: 2px;
+    text-transform: uppercase;
+    color: #fff !important;
 }
 
-.trackers-attach-info .file-size {
-    color: #666;
-    font-style: italic;
-    display: block;
-    margin-top: 2px;
+/* Colores lógicos según el texto del estado */
+/* phpBB Twig detectará estas clases si el nombre coincide */
+.status-abierto, .status-open { background-color: #28a745; }   /* Verde */
+.status-cerrado, .status-closed { background-color: #6c757d; } /* Gris */
+.status-progreso, .status-progress { background-color: #007bff; } /* Azul */
+.status-espera, .status-pending { background-color: #ffc107; color: #333 !important; } /* Amarillo */
+.status-rechazado, .status-rejected { background-color: #dc3545; } /* Rojo */
+
+/* --- Mejoras de Diseño en Comentarios --- */
+.postbody .content {
+    font-family: "Segoe UI", Arial, sans-serif;
+    line-height: 1.6;
+}
+
+.reported-private {
+    border-color: #bc2a4d !important;
+    background-color: #fff5f7 !important;
 }

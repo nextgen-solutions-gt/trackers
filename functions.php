@@ -236,7 +236,7 @@ class functions
             $sql .= ' AND t.user_id = ' . (int) $this->user->data['user_id'];
         }
 
-        if (!$this->is_team_user() && !$this->can_report_private()) {
+        if (!$this->is_team_user() && !$this->auth->acl_get('u_tracker_view_private')) {
             $sql .= ' AND (t.ticket_private = 0 OR t.user_id = ' . (int) $this->user->data['user_id'] . ')';
         }
 
@@ -398,7 +398,6 @@ class functions
             WHERE h.ticket_id = ' . (int) $ticket['ticket_id'] . '
                 AND h.history_timestamp < ' . (int) $post_max_timestamp . '
                 AND h.history_timestamp >= ' . (int) $post_min_timestamp . '
-                AND h.history_timestamp >= ' . (int) $post_min_timestamp . '
                 AND h.history_type <= ' . $history_type . '
             ORDER BY h.history_timestamp ASC';
         
@@ -409,6 +408,9 @@ class functions
         }
         $this->db->sql_freeresult($history_result);
 
+        $is_moderator = ($this->auth->acl_get('a_trackers') || $this->auth->acl_getf_global('m_') || $this->auth->acl_get('m_tracker_edit'));
+        $is_team = $this->is_team_user((int) $ticket['project_id']);
+
         $p = $h = null;
         while (count($posts) || count($history_entries) || $p || $h) {
             if (!$p) $p = array_shift($posts);
@@ -417,6 +419,12 @@ class functions
             if ($p && (!$h || ($p['post_timestamp'] <= $h['history_timestamp']))) {
                 $post_text = generate_text_for_display($p['post_text'], $p['bbcode_uid'], $p['bbcode_bitfield'], $p['bbcode_flags']);
                 
+                // SEGURIDAD: Identidad vs Moderación para Botones de Comentarios
+                $is_p_author = ($this->user->data['user_id'] != ANONYMOUS && $this->user->data['user_id'] == $p['user_id']);
+                
+                $can_edit = ($is_moderator || $is_team || ($is_p_author && $this->auth->acl_get('u_tracker_edit')));
+                $can_delete = ($is_moderator || $is_team || ($is_p_author && $this->auth->acl_get('u_tracker_delete')));
+
                 $this->template->assign_block_vars('ticket_posts', [
                     'S_TYPE'    => 'POST',
                     'S_PRIVATE' => (bool) $p['post_private'],
@@ -425,21 +433,25 @@ class functions
                     'USER'      => get_username_string('full', $p['user_id'], $p['username'], $p['user_colour']),
                     'USER_RANK' => $p['rank_title'],
                     'TIMESTAMP' => $this->user->format_date($p['post_timestamp']),
-                    'U_EDIT'    => $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => 'edit', 'post' => (int) $p['post_id']]),
-                    'U_DELETE'  => $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => 'delete', 'post' => (int) $p['post_id']]),
-                    'S_HAS_ATTACHMENTS' => !empty($attachments[$p['post_id']]),
+                    'U_EDIT'    => ($can_edit) ? $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => 'edit', 'post' => (int) $p['post_id']]) : '',
+                    'U_DELETE'  => ($can_delete) ? $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => 'delete', 'post' => (int) $p['post_id']]) : '',
                 ]);
 
                 if (!empty($attachments[$p['post_id']])) {
                     foreach ($attachments[$p['post_id']] as $attach) {
+                        $download_url = $this->helper->route('nextgen_trackers_download', ['attach_id' => $attach['attach_id']]);
                         $ext = strtolower(pathinfo($attach['real_filename'], PATHINFO_EXTENSION));
                         $is_image = in_array($ext, ['jpg', 'jpeg', 'png', 'gif', 'webp']);
 
-                        $this->template->assign_block_vars('ticket_posts.attach', [
-                            'FILE_NAME'  => $attach['real_filename'],
-                            'U_DOWNLOAD' => $this->helper->route('nextgen_trackers_download', ['attach_id' => $attach['attach_id']]),
-                            'FILESIZE'   => ($attach['filesize'] / 1024 > 1024) ? sprintf('%.2f MB', $attach['filesize'] / 1048576) : sprintf('%.2f KB', $attach['filesize'] / 1024),
-                            'S_IS_IMAGE' => $is_image,
+                        $display_html = '';
+                        if ($is_image) {
+                            $display_html = '<div class="inline-attachment"><dl class="file"><dt class="attach-image"><a href="' . $download_url . '" target="_blank"><img src="' . $download_url . '" class="postimage" alt="' . $attach['real_filename'] . '" /></a></dt><dd>' . $attach['real_filename'] . ' (' . ($attach['filesize'] / 1024 > 1024 ? sprintf("%.2f MB", $attach['filesize'] / 1048576) : sprintf("%.2f KB", $attach['filesize'] / 1024)) . ')</dd></dl></div>';
+                        } else {
+                            $display_html = '<dl class="file"><dt><i class="icon fa-paperclip fa-fw" aria-hidden="true"></i> <a class="postlink" href="' . $download_url . '">' . $attach['real_filename'] . '</a></dt><dd>(' . ($attach['filesize'] / 1024 > 1024 ? sprintf("%.2f MB", $attach['filesize'] / 1048576) : sprintf("%.2f KB", $attach['filesize'] / 1024)) . ')</dd></dl>';
+                        }
+
+                        $this->template->assign_block_vars('ticket_posts.attachment', [
+                            'DISPLAY_ATTACHMENT' => $display_html,
                         ]);
                     }
                 }
@@ -464,7 +476,7 @@ class functions
         if (empty($this->user->data) || empty($this->user->data['is_registered']) || !empty($this->user->data['is_bot'])) {
             return constants::TYPE_PUBLIC;
         }
-        if ($this->is_team_user()) {
+        if ($this->is_team_user() || $this->auth->acl_get('m_tracker_logs')) {
             return constants::TYPE_TEAM;
         }
         return constants::TYPE_PUBLIC;
@@ -597,7 +609,7 @@ class functions
     public function can_report_private()
     {
         if ($this->user->data['user_id'] != ANONYMOUS) {
-            if ($this->auth->acl_get('a_') || $this->auth->acl_getf_global('m_')) return true;
+            if ($this->auth->acl_get('a_trackers') || $this->auth->acl_get('u_tracker_view_private')) return true;
         }
         if ($this->is_team_user()) return true;
         return false;
@@ -605,7 +617,7 @@ class functions
 
     public function can_set_severity()
     {
-        if ($this->is_team_user() || $this->auth->acl_getf_global('m_')) return true;
+        if ($this->is_team_user() || $this->auth->acl_get('m_tracker_status')) return true;
         return false;
     }
 
@@ -641,7 +653,7 @@ class functions
             $user_id = (int) $this->user->data['user_id'];
             if ($this->user->data['is_bot'] || $user_id == ANONYMOUS) return false;
         }
-        if ($this->auth->acl_get('a_')) return true;
+        if ($this->auth->acl_get('a_trackers')) return true;
 
         return in_array((int) $user_id, $this->get_team_users($project_id));
     }
@@ -770,10 +782,12 @@ class functions
         if (!$this->config['trackers_attachments']) {
             return false;
         }
-        if ($this->auth->acl_get('a_')) {
+
+        if ($this->auth->acl_get('a_trackers')) {
             return true;
         }
-        if ($this->user->data['user_id'] == ANONYMOUS) {
+
+        if (!$this->user->data['is_registered'] || $this->user->data['is_bot']) {
             return false;
         }
 
@@ -796,7 +810,8 @@ class functions
                 WHERE ' . $this->db->sql_in_set('group_id', $user_groups) . ' 
                 AND project_id IN (0, ' . (int) $project_id . ') 
                 AND can_attach = 1';
-        $result = $this->db->sql_query($sql);
+        
+        $result = $this->db->sql_query_limit($sql, 1);
         $can = $this->db->sql_fetchrow($result);
         $this->db->sql_freeresult($result);
 
@@ -838,9 +853,6 @@ class functions
         return (is_writable($path)) ? $path : false;
     }
 
-    /**
-     * Elimina físicamente un adjunto del servidor y su registro en la BD
-     */
     public function delete_attachment($attach_id)
     {
         $attach_id = (int) $attach_id;

@@ -3,11 +3,15 @@
 <h2 class="posting-title">{{ L_POSTING_TITLE }}</h2>
 
 <form id="postform" method="post" action="{{ U_ACTION }}" enctype="multipart/form-data">
+    
     <input type="hidden" name="t" value="{{ TRACKER_ID }}" />
     <input type="hidden" name="p" value="{{ PROJECT_ID }}" />
     <input type="hidden" name="ticket" value="{{ TICKET_ID }}" />
     <input type="hidden" name="tracker_edit_id" value="{{ POST_ID }}" />
-    <input type="hidden" name="mode" value="{% if S_EDIT_POST %}edit{% elseif TICKET_ID %}reply{% else %}post{% endif %}" />
+    <input type="hidden" name="mode" value="{% if S_EDIT_POST %}edit{% elseif S_REPLY_TICKET %}reply{% else %}post{% endif %}" />
+    
+    {{ S_FORM_TOKEN }}
+    {{ S_HIDDEN_FIELDS }}
 
     <div class="panel" id="postingbox">
         <div class="inner">
@@ -25,12 +29,12 @@
                     <dd>
                         {% if S_HAS_SEVERITIES %}
                             <select name="severity" id="severity">
-                                {% for sev in loops.severities %}
+                                {% for sev in severities %}
                                     <option value="{{ sev.ID }}" {% if sev.ID == SEVERITY_ID %} selected="selected"{% endif %}>{{ sev.NAME }}</option>
                                 {% endfor %}
                             </select>
                         {% else %}
-                            <span style="color: #bcbcbc; font-style: italic;">{{ lang('NO_SEVERITIES_ASSIGNED') }}</span>
+                            <span style="color: #bcbcbc; font-style: italic;">{{ lang('UNCATEGORISED') }}</span>
                         {% endif %}
                     </dd>
                 </dl>
@@ -40,13 +44,13 @@
                     <dd>
                         {% if S_HAS_COMPONENTS %}
                             <select name="component_id" id="component_id">
-                                <option value="0">{{ lang('SELECT_COMPONENT') }}</option>
-                                {% for comp in loops.components %}
+                                <option value="0">{{ lang('UNKNOWN') }}</option>
+                                {% for comp in components %}
                                     <option value="{{ comp.ID }}" {% if comp.S_SELECTED %} selected="selected"{% endif %}>{{ comp.NAME }}</option>
                                 {% endfor %}
                             </select>
                         {% else %}
-                            <span style="color: #bcbcbc; font-style: italic;">{{ lang('NO_COMPONENTS_ASSIGNED') }}</span>
+                            <span style="color: #bcbcbc; font-style: italic;">{{ lang('UNKNOWN') }}</span>
                         {% endif %}
                     </dd>
                 </dl>
@@ -65,11 +69,11 @@
                 {% set S_SMILIES_ALLOWED = S_SMILIES_ALLOWED_BK %}
 
                 <div id="smiley-box" class="smiley-box">
-                    {% if S_SMILIES_ALLOWED and loops.smiley %}
+                    {% if S_SMILIES_ALLOWED and smiley %}
                         <strong>{{ lang('SMILIES') }}</strong><br />
-                        {% for smiley in loops.smiley %}
-                            <a href="#" onclick="insert_text('{{ smiley.A_SMILEY_CODE }}', true); return false;">
-                                <img src="{{ smiley.SMILEY_IMG }}" width="{{ smiley.SMILEY_WIDTH }}" height="{{ smiley.SMILEY_HEIGHT }}" alt="{{ smiley.SMILEY_CODE }}" title="{{ smiley.SMILEY_DESC }}" />
+                        {% for s in smiley %}
+                            <a href="#" onclick="insert_text('{{ s.A_SMILEY_CODE }}', true); return false;">
+                                <img src="{{ s.SMILEY_IMG }}" width="{{ s.SMILEY_WIDTH }}" height="{{ s.SMILEY_HEIGHT }}" alt="{{ s.SMILEY_CODE }}" title="{{ s.SMILEY_DESC }}" />
                             </a>
                         {% endfor %}
                     {% endif %}
@@ -80,7 +84,7 @@
                 </div>
 
                 <div id="message-box" class="message-box">
-                    <textarea tabindex="1" name="message" id="message" rows="15" cols="76" onselect="storeCaret(this);" onclick="storeCaret(this);" onkeyup="storeCaret(this);" onfocus="initInsertions();" class="inputbox" data-bbcode="true">{{ MESSAGE }}</textarea>
+                    <textarea tabindex="1" name="message" id="message" rows="15" cols="76" class="inputbox" data-bbcode="true">{{ MESSAGE }}</textarea>
                 </div>
             </fieldset>
         </div>
@@ -97,7 +101,6 @@
                         <span style="font-size: 0.9em; color: #666;">{{ lang('ALLOWED_EXTENSIONS') }}{{ lang('COLON') }} {{ ALLOWED_EXT }}</span>
                     </dt>
                     <dd>
-                        {# name con [] para que el request de phpBB lo detecte correctamente #}
                         <input type="file" name="tracker_attachments" id="tracker_attachments" class="inputbox autowidth" />
                     </dd>
                 </dl>
@@ -109,10 +112,9 @@
     <div class="panel bg2">
         <div class="inner">
             <fieldset class="submit-buttons">
-				{{ S_FORM_TOKEN }}
-				<input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
-				<a href="{{ U_CANCEL }}" class="button2">{{ lang('CANCEL') }}</a>
-		</fieldset>
+                <input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
+                <input type="submit" name="cancel" value="{{ lang('CANCEL') }}" class="button2" />
+            </fieldset>
         </div>
     </div>
 </form>

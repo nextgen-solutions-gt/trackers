@@ -1,5 +1,7 @@
-{% INCLUDECSS '@nextgen_trackers/common.css' %}
 {% include 'overall_header.html' %}
+
+{% if S_TRACKER_ENABLED %}
+{% INCLUDECSS '@nextgen_trackers/common.css' %}
 
 <div class="extras">
     <div class="mini-panel">
@@ -23,7 +25,7 @@
     {% if S_TRACKER_PRIVATE %}
         <div class="rules">
             <div class="inner">
-                <strong>{{ lang('TRACKER_PRIVATE') }}</strong>: {{ lang('TRACKER_PRIVATE_EXPLAIN')|default('Este tracker es privado. Solo los miembros del equipo pueden ver todos los tickets.') }}
+                <strong>{{ lang('TRACKER_PRIVATE') }}</strong>
             </div>
         </div>
     {% endif %}
@@ -35,12 +37,12 @@
                     <tr>
                         <th class="name" style="width: 30%;">{{ lang('PROJECT') }}</th>
                         <th class="name">{{ lang('DESCRIPTION') }}</th>
-                        <th class="center" style="width: 15%;">{{ lang('TICKETS') }}</th>
+                        <th class="center" style="width: 15%;">{{ lang('TRACKERS') }}</th>
                     </tr>
                 </thead>
                 <tbody>
-                {% if loops.projects|length %}
-                    {% for project in loops.projects %}
+                {% if projects|length %}
+                    {% for project in projects %}
                     <tr class="{% if project.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}">
                         <td class="name">
                             <a href="{{ project.U_VIEWPROJECT }}" class="topictitle">{{ project.PROJECT_NAME }}</a>
@@ -49,9 +51,8 @@
                             <div class="project-description">{{ project.DESCRIPTION }}</div>
                         </td>
                         <td class="center">
-                            {# Mostramos el conteo de tickets por proyecto #}
                             <span class="sub-badge" style="background: #e1e4e8; padding: 2px 8px; border-radius: 10px; font-weight: bold; font-size: 0.9em;">
-                                {{ project.TOTAL_TICKETS|default(0) }}
+                                {{ project.TOTAL_TICKETS }}
                             </span>
                         </td>
                     </tr>
@@ -71,10 +72,16 @@
     <div class="action-bar bottom">
         <div class="buttons">
             <a href="{{ U_INDEX }}" class="button">
-                <i class="icon fa-angle-left fa-fw" aria-hidden="true"></i><span>{{ lang('RETURN_INDEX')|replace({'%s': ''}) }}</span>
+                <i class="icon fa-angle-left fa-fw" aria-hidden="true"></i><span>{{ lang('RETURN_INDEX')|default('Return to Index') }}</span>
             </a>
         </div>
     </div>
 </div>
-
+{% else %}
+    <div class="rules">
+        <div class="inner">
+            {{ lang('TRACKER_DISABLED') }}
+        </div>
+    </div>
+{% endif %}
 {% include 'overall_footer.html' %}

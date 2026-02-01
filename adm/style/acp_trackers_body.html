@@ -3,18 +3,19 @@
 <a id="main" name="main"></a>
 
 <h1>{{ lang('ACP_TRACKERS_TITLE') }}</h1>
+<p>{{ lang('ACP_TRACKERS_EXPLAIN') }}</p>
 
 {# --- CONFIGURACIÓN GENERAL --- #}
 {% if S_MODE_SETTINGS %}
     <form id="acp_settings" method="post" action="{{ U_ACTION }}">
     <fieldset>
-        <legend>{{ L_TITLE }}</legend>
+        <legend>{{ lang('GENERAL_SETTINGS') }}</legend>
         
         <dl>
-            <dt><label for="trackers_enable">{{ lang('TRACKERS_ENABLE') }}{{ lang('COLON') }}</label><br /><span>{{ lang('TRACKERS_ENABLE_EXPLAIN') }}</span></dt>
+            <dt><label for="trackers_enabled">{{ lang('TRACKERS_ENABLE') }}{{ lang('COLON') }}</label><br /><span>{{ lang('TRACKERS_ENABLE_EXPLAIN') }}</span></dt>
             <dd>
-                <label><input type="radio" class="radio" name="trackers_enable" value="1" {% if TRACKERS_ENABLE %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
-                <label><input type="radio" class="radio" name="trackers_enable" value="0" {% if not TRACKERS_ENABLE %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+                <label><input type="radio" class="radio" name="trackers_enabled" value="1" {% if TRACKERS_ENABLED %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+                <label><input type="radio" class="radio" name="trackers_enabled" value="0" {% if not TRACKERS_ENABLED %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
             </dd>
         </dl>
 
@@ -139,13 +140,13 @@
     </fieldset>
     </form>
 
-{# --- EDICIÓN ÍTEMS (ESTADOS/SEVERIDADES/COMPONENTES) --- #}
+{# --- EDICIÓN ÍTEMS --- #}
 {% elseif S_EDIT_STATUS or S_EDIT_SEVERITY or S_EDIT_COMPONENT %}
     <form id="acp_edit_item" method="post" action="{{ U_ACTION }}">
     <fieldset>
         <legend>{{ L_TITLE }}</legend>
         <dl>
-            <dt><label for="project_ids">{{ lang('ASSIGN_TO_PROJECTS') }}{{ lang('COLON') }}</label></dt>
+            <dt><label for="project_ids">{{ lang('ASSIGN_TO_PROJECTS') }}{{ lang('COLON') }}</label><br /><span>{{ lang('ASSIGN_TO_PROJECTS_EXPLAIN') }}</span></dt>
             <dd><select id="project_ids" name="project_ids[]" multiple="multiple" size="8">
                 {% for p in projects_list %}<option value="{{ p.ID }}"{% if p.S_SELECTED %} selected="selected"{% endif %}>{{ p.NAME }}</option>{% endfor %}
             </select></dd>
@@ -159,8 +160,8 @@
         <dl>
             <dt><label for="colour">{{ lang('COLOR') }}{{ lang('COLON') }}</label></dt>
             <dd>
-                <input type="color" id="colour" name="colour" value="#{{ ITEM_COLOUR }}" style="height: 30px; width: 50px; cursor: pointer; border: 1px solid #ccc; vertical-align: middle;" />
-                <span style="margin-left: 5px;">#{{ ITEM_COLOUR }}</span>
+                <input type="text" id="colour" name="colour" value="{{ ITEM_COLOUR }}" class="inputbox autowidth" maxlength="6" />
+                <input type="color" value="#{{ ITEM_COLOUR }}" onchange="document.getElementById('colour').value = this.value.replace('#', '');" style="height: 25px; vertical-align: middle;" />
             </dd>
         </dl>
         {% endif %}
@@ -189,45 +190,24 @@
     </fieldset>
     </form>
 
-{# --- LISTADO DE PROYECTOS --- #}
-{% elseif S_MODE_PROJECTS %}
-    <table class="table1 zebra-list">
-        <thead>
-            <tr>
-                <th>{{ lang('PROJECT_NAME') }}</th>
-                <th>{{ lang('TYPE') }}</th>
-                <th style="width: 100px;">{{ lang('ACTION') }}</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for project in projects %}
-            <tr>
-                <td><strong>{{ project.NAME|raw }}</strong></td>
-                <td>{{ project.TYPE }}</td>
-                <td style="text-align: center;"><a href="{{ project.U_EDIT }}">{{ lang('EDIT') }}</a> | <a href="{{ project.U_DELETE }}">{{ lang('DELETE') }}</a></td>
-            </tr>
-        {% else %}
-            <tr><td colspan="3" class="row3" style="text-align: center;">{{ lang('NO_PROJECTS') }}</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    <form method="post" action="{{ U_ACTION }}"><fieldset class="submit-buttons"><input class="button1" type="submit" id="add" name="add" value="{{ lang('ADD_PROJECT') }}" />{{ S_FORM_TOKEN }}</fieldset></form>
-
-{# --- LISTADO DE ÍTEMS --- #}
-{% elseif S_MODE_STATUSES or S_MODE_SEVERITIES or S_MODE_COMPONENTS %}
+{# --- LISTADOS --- #}
+{% elseif S_MODE_PROJECTS or S_MODE_STATUSES or S_MODE_SEVERITIES or S_MODE_COMPONENTS %}
     <table class="table1 zebra-list">
         <thead>
             <tr>
                 <th>{{ lang('NAME') }}</th>
-                {% if not S_MODE_COMPONENTS %}<th>{{ lang('COLOR') }}</th>{% endif %}
+                {% if S_MODE_PROJECTS %}<th>{{ lang('TYPE') }}</th>{% endif %}
+                {% if S_MODE_STATUSES or S_MODE_SEVERITIES %}<th>{{ lang('COLOR') }}</th>{% endif %}
                 <th style="width: 100px;">{{ lang('ACTION') }}</th>
             </tr>
         </thead>
         <tbody>
-        {% for item in items %}
+        {% set loop_items = S_MODE_PROJECTS ? projects : items %}
+        {% for item in loop_items %}
             <tr>
-                <td><strong>{{ item.NAME }}</strong></td>
-                {% if not S_MODE_COMPONENTS %}
+                <td><strong>{{ item.NAME|raw }}</strong></td>
+                {% if S_MODE_PROJECTS %}<td>{{ item.TYPE }}</td>{% endif %}
+                {% if S_MODE_STATUSES or S_MODE_SEVERITIES %}
                     <td>
                         {% if item.COLOUR %}
                             <span style="display:inline-block; width:15px; height:15px; background-color:#{{ item.COLOUR }}; border:1px solid #000; vertical-align:middle; margin-right:5px;"></span> #{{ item.COLOUR }}
@@ -239,11 +219,16 @@
                 <td style="text-align: center;"><a href="{{ item.U_EDIT }}">{{ lang('EDIT') }}</a> | <a href="{{ item.U_DELETE }}">{{ lang('DELETE') }}</a></td>
             </tr>
         {% else %}
-            <tr><td colspan="{% if not S_MODE_COMPONENTS %}3{% else %}2{% endif %}" class="row3" style="text-align: center;">{{ lang('NO_ITEMS') }}</td></tr>
+            <tr><td colspan="4" class="row3" style="text-align: center;">{{ lang('NO_ITEMS') }}</td></tr>
         {% endfor %}
         </tbody>
     </table>
-    <form method="post" action="{{ U_ACTION }}"><fieldset class="submit-buttons"><input class="button1" type="submit" id="add" name="add" value="{{ lang('ADD') }}" />{{ S_FORM_TOKEN }}</fieldset></form>
+    <form method="post" action="{{ U_ACTION }}">
+        <fieldset class="submit-buttons">
+            <input class="button1" type="submit" id="add" name="add" value="{{ S_MODE_PROJECTS ? lang('ADD_PROJECT') : lang('ADD') }}" />
+            {{ S_FORM_TOKEN }}
+        </fieldset>
+    </form>
 {% endif %}
 
 {% include 'overall_footer.html' %}

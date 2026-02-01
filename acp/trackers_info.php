@@ -28,27 +28,27 @@ class trackers_info
             'modes'     => [
                 'settings'  => [
                     'title' => 'ACP_TRACKERS_SETTINGS',
-                    'auth'  => 'ext_nextgen/trackers && acl_a_board',
+                    'auth'  => 'ext_nextgen/trackers && acl_a_trackers',
                     'cat'   => ['ACP_TRACKERS_TITLE']
                 ],
                 'projects'  => [
                     'title' => 'ACP_TRACKERS_PROJECTS',
-                    'auth'  => 'ext_nextgen/trackers && acl_a_board',
+                    'auth'  => 'ext_nextgen/trackers && acl_a_trackers',
                     'cat'   => ['ACP_TRACKERS_TITLE']
                 ],
                 'statuses'  => [
                     'title' => 'ACP_TRACKERS_STATUSES',
-                    'auth'  => 'ext_nextgen/trackers && acl_a_board',
+                    'auth'  => 'ext_nextgen/trackers && acl_a_trackers',
                     'cat'   => ['ACP_TRACKERS_TITLE']
                 ],
                 'severities' => [
                     'title' => 'ACP_TRACKERS_SEVERITIES',
-                    'auth'  => 'ext_nextgen/trackers && acl_a_board',
+                    'auth'  => 'ext_nextgen/trackers && acl_a_trackers',
                     'cat'   => ['ACP_TRACKERS_TITLE']
                 ],
                 'components' => [
                     'title' => 'ACP_TRACKERS_COMPONENTS',
-                    'auth'  => 'ext_nextgen/trackers && acl_a_board',
+                    'auth'  => 'ext_nextgen/trackers && acl_a_trackers',
                     'cat'   => ['ACP_TRACKERS_TITLE']
                 ],
             ],

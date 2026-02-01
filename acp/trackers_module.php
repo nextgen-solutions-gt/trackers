@@ -62,88 +62,90 @@ class trackers_module
 	}
 
 	protected function manage_settings($tables)
-	{
-		global $template, $user, $config, $request, $db;
+    {
+        global $template, $user, $config, $request, $db;
 
-		// 1. Definición de configuraciones generales (incluyendo nueva ruta y límites)
-		$settings = [
-			'trackers_enable'            => 1,
-			'trackers_per_page'          => 15,
-			'trackers_attachments'       => 1,
-			'trackers_attach_max_size'   => 2048, // KiB
-			'trackers_attach_extensions' => 'jpg,jpeg,png,gif,zip,pdf',
-			'trackers_attach_path'       => 'files/trackers/',
-		];
+        // 1. Definición de configuraciones generales (Valores de fábrica/fallback)
+        $settings = [
+            'trackers_enabled'           => 1,
+            'trackers_per_page'          => 15,
+            'trackers_attachments'       => 1,
+            'trackers_attach_max_size'   => 2048, // KiB
+            'trackers_attach_extensions' => 'jpg,jpeg,png,gif,zip,pdf',
+            'trackers_attach_path'       => 'files/trackers/',
+        ];
 
-		if ($request->is_set_post('submit'))
-		{
-			if (!check_form_key('acp_trackers')) trigger_error($user->lang('FORM_INVALID'), E_USER_WARNING);
-			
-			// Guardar configuraciones escalares
-			foreach ($settings as $key => $default)
-			{
-				$value = $request->variable($key, $default, true);
-				$config->set($key, $value);
-			}
+        if ($request->is_set_post('submit'))
+        {
+            if (!check_form_key('acp_trackers')) trigger_error($user->lang('FORM_INVALID'), E_USER_WARNING);
+            
+            // Guardar configuraciones escalares en la tabla phpbb_config
+            foreach ($settings as $key => $default)
+            {
+                // Leemos del formulario, si no viene nada, usamos el default del array
+                $value = $request->variable($key, $default, true);
+                $config->set($key, $value);
+            }
 
-			// 2. Guardar Permisos de Adjuntos por Grupo
-			$auth_attach = $request->variable('auth_attach', [0 => 0]); 
-			
-			// Limpiamos permisos globales previos (project_id = 0)
-			$db->sql_query('DELETE FROM ' . $tables['attach_auth'] . ' WHERE project_id = 0');
-			
-			foreach ($auth_attach as $g_id => $can_attach)
-			{
-				if ($can_attach)
-				{
-					$db->sql_query('INSERT INTO ' . $tables['attach_auth'] . ' ' . $db->sql_build_array('INSERT', [
-						'group_id'   => (int) $g_id,
-						'project_id' => 0, 
-						'can_attach' => 1
-					]));
-				}
-			}
+            // 2. Guardar Permisos de Adjuntos por Grupo
+            $auth_attach = $request->variable('auth_attach', [0 => 0]); 
+            
+            // Limpiamos permisos globales previos (project_id = 0)
+            $db->sql_query('DELETE FROM ' . $tables['attach_auth'] . ' WHERE project_id = 0');
+            
+            foreach ($auth_attach as $g_id => $can_attach)
+            {
+                if ($can_attach)
+                {
+                    $db->sql_query('INSERT INTO ' . $tables['attach_auth'] . ' ' . $db->sql_build_array('INSERT', [
+                        'group_id'   => (int) $g_id,
+                        'project_id' => 0, 
+                        'can_attach' => 1
+                    ]));
+                }
+            }
 
-			trigger_error($user->lang('SETTINGS_UPDATED') . adm_back_link($this->u_action));
-		}
+            trigger_error($user->lang('SETTINGS_UPDATED') . adm_back_link($this->u_action));
+        }
 
-		// 3. Obtener lista de grupos para la matriz de permisos
-		$sql = 'SELECT group_id, group_name, group_type 
-				FROM ' . GROUPS_TABLE . ' 
-				WHERE group_type <> ' . GROUP_SPECIAL . ' 
-				OR group_name IN ("REGISTERED", "ADMINISTRATORS", "MODERATORS") 
-				ORDER BY group_name ASC';
-		$result = $db->sql_query($sql);
-		
-		$current_auth = [];
-		$sql_auth = 'SELECT group_id FROM ' . $tables['attach_auth'] . ' WHERE project_id = 0 AND can_attach = 1';
-		$res_auth = $db->sql_query($sql_auth);
-		while($row_a = $db->sql_fetchrow($res_auth)) $current_auth[] = $row_a['group_id'];
-		$db->sql_freeresult($res_auth);
+        // 3. Obtener lista de grupos para la matriz de permisos
+        $sql = 'SELECT group_id, group_name, group_type 
+                FROM ' . GROUPS_TABLE . ' 
+                WHERE group_type <> ' . GROUP_SPECIAL . ' 
+                OR group_name IN ("REGISTERED", "ADMINISTRATORS", "MODERATORS") 
+                ORDER BY group_name ASC';
+        $result = $db->sql_query($sql);
+        
+        $current_auth = [];
+        $sql_auth = 'SELECT group_id FROM ' . $tables['attach_auth'] . ' WHERE project_id = 0 AND can_attach = 1';
+        $res_auth = $db->sql_query($sql_auth);
+        while($row_a = $db->sql_fetchrow($res_auth)) $current_auth[] = $row_a['group_id'];
+        $db->sql_freeresult($res_auth);
 
-		while ($row = $db->sql_fetchrow($result))
-		{
-			$template->assign_block_vars('groups', [
-				'ID'         => $row['group_id'],
-				'NAME'       => ($row['group_type'] == GROUP_SPECIAL) ? $user->lang('G_' . $row['group_name']) : $row['group_name'],
-				'CAN_ATTACH' => in_array($row['group_id'], $current_auth),
-			]);
-		}
-		$db->sql_freeresult($result);
+        while ($row = $db->sql_fetchrow($result))
+        {
+            $template->assign_block_vars('groups', [
+                'ID'         => $row['group_id'],
+                'NAME'       => ($row['group_type'] == GROUP_SPECIAL) ? $user->lang('G_' . $row['group_name']) : $row['group_name'],
+                'CAN_ATTACH' => in_array($row['group_id'], $current_auth),
+            ]);
+        }
+        $db->sql_freeresult($result);
 
-		$template->assign_vars([
-			'S_MODE_SETTINGS'            => true,
-			'L_TITLE'                    => $user->lang('ACP_TRACKERS_SETTINGS'),
-			'U_ACTION'                   => $this->u_action,
-			
-			'TRACKERS_ENABLE'            => (int) ($config['trackers_enable'] ?? 1),
-			'TRACKERS_PER_PAGE'          => (int) ($config['trackers_per_page'] ?? 15),
-			'TRACKERS_ATTACHMENTS'       => (int) ($config['trackers_attachments'] ?? 1),
-			'TRACKERS_ATTACH_MAX_SIZE'   => (int) ($config['trackers_attach_max_size'] ?? 2048),
-			'TRACKERS_ATTACH_EXTENSIONS' => (string) ($config['trackers_attach_extensions'] ?? 'jpg,jpeg,png,gif,zip,pdf'),
-			'TRACKERS_ATTACH_PATH'       => (string) ($config['trackers_attach_path'] ?? 'files/trackers/'),
-		]);
-	}
+        // 4. Asignación de variables al template con lógica de prioridad (DB > Fallback)
+        $template->assign_vars([
+            'S_MODE_SETTINGS'            => true,
+            'L_TITLE'                    => $user->lang('ACP_TRACKERS_SETTINGS'),
+            'U_ACTION'                   => $this->u_action,
+            
+            'TRACKERS_ENABLED'           => isset($config['trackers_enabled']) ? (int) $config['trackers_enabled'] : $settings['trackers_enabled'],
+            'TRACKERS_PER_PAGE'          => isset($config['trackers_per_page']) ? (int) $config['trackers_per_page'] : $settings['trackers_per_page'],
+            'TRACKERS_ATTACHMENTS'       => isset($config['trackers_attachments']) ? (int) $config['trackers_attachments'] : $settings['trackers_attachments'],
+            'TRACKERS_ATTACH_MAX_SIZE'   => isset($config['trackers_attach_max_size']) ? (int) $config['trackers_attach_max_size'] : $settings['trackers_attach_max_size'],
+            'TRACKERS_ATTACH_EXTENSIONS' => isset($config['trackers_attach_extensions']) ? (string) $config['trackers_attach_extensions'] : $settings['trackers_attach_extensions'],
+            'TRACKERS_ATTACH_PATH'       => isset($config['trackers_attach_path']) ? (string) $config['trackers_attach_path'] : $settings['trackers_attach_path'],
+        ]);
+    }
 
 	protected function manage_projects($project_table, $tracker_table)
 	{

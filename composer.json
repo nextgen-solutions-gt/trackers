@@ -3,8 +3,8 @@
     "type": "phpbb-extension",
     "description": "An incident, security, bug and feature tracker for phpBB.",
     "homepage": "https://nextgen.gt",
-    "version": "1.0.0-alpha1",
-    "time": "2026-01-30",
+    "version": "1.0.0-RC1",
+    "time": "2026-01-31",
     "license": "GPL-2.0-only",
     "authors": [
         {
@@ -29,9 +29,9 @@
             "phpbb/phpbb": ">=3.3.0,<4.1.0@dev"
         },
         "version-check": {
-            "host": "nextgen.gt",
-            "directory": "/updatecheck",
-            "filename": "trackers.json"
+            "host": "https://raw.githubusercontent.com",
+            "directory": "/nextgen-solutions-gt/trackers/master",
+            "filename": "trackers_versions.json"
         }
     }
 }

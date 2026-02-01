@@ -1,0 +1,11 @@
+{
+    "unstable": {
+        "3.3": {
+			"current": "1.0.0-RC1",
+		    "download": "",
+            "announcement": "",
+            "eol": null,
+            "security": false
+        }
+    }
+}

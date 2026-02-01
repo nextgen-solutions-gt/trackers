@@ -52,6 +52,7 @@ services:
     nextgen.trackers.operator.viewtracker:
         class: nextgen\trackers\operators\viewtracker
         arguments:
+            - '@config'
             - '@service_container'
             - '@language'
             - '@controller.helper'
@@ -62,8 +63,8 @@ services:
     nextgen.trackers.operator.viewproject:
         class: nextgen\trackers\operators\viewproject
         arguments:
-            - '@auth'
             - '@config'
+            - '@auth'
             - '@service_container'
             - '@language'
             - '@controller.helper'
@@ -74,8 +75,8 @@ services:
     nextgen.trackers.operator.viewticket:
         class: nextgen\trackers\operators\viewticket
         arguments:
-            - '@auth'
             - '@config'
+            - '@auth'
             - '@service_container'
             - '@language'
             - '@controller.helper'

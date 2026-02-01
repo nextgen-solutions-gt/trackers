@@ -66,12 +66,24 @@ class posting
 
         $functions = $this->container->get('nextgen.trackers.functions');
 
-        // Lógica de Borrado
+        if ($this->request->is_set_post('cancel'))
+        {
+            $redirect_url = $this->helper->route('nextgen_trackers_controller', [
+                'page'   => 'viewticket',
+                't'      => (int) $tracker_id,
+                'p'      => (int) $project_id,
+                'ticket' => (int) $ticket_id
+            ]);
+            redirect($redirect_url);
+        }        
+
+        // --- LÓGICA DE BORRADO SEGURO ---
         if ($mode == 'delete')
         {
-            if ($post_id && (!$ticket_id || !$project_id))
+            $post_author_id = 0;
+            if ($post_id)
             {
-                $sql = 'SELECT p.ticket_id, t.project_id, pr.tracker_id 
+                $sql = 'SELECT p.ticket_id, t.project_id, pr.tracker_id, p.user_id 
                         FROM ' . $this->tables['trackers_post'] . ' p
                         JOIN ' . $this->tables['trackers_ticket'] . ' t ON p.ticket_id = t.ticket_id
                         JOIN ' . $this->tables['trackers_project'] . ' pr ON t.project_id = pr.project_id
@@ -85,12 +97,21 @@ class posting
                     $ticket_id = (int) $row['ticket_id'];
                     $project_id = (int) $row['project_id'];
                     $tracker_id = (int) $row['tracker_id'];
+                    $post_author_id = (int) $row['user_id'];
                 }
             }
 
-            if (!$this->auth->acl_get('a_') && !$this->auth->acl_get('m_') && !$functions->is_team_user($project_id))
+            // SEGURIDAD: Identidad vs Moderación
+            $is_author = ($this->user->data['user_id'] != ANONYMOUS && $this->user->data['user_id'] == $post_author_id);
+            $is_moderator = ($this->auth->acl_get('a_trackers') || $this->auth->acl_getf_global('m_') || $this->auth->acl_get('m_tracker_delete'));
+            $is_team_user = $functions->is_team_user($project_id);
+
+            if (!$is_moderator && !$is_team_user)
             {
-                trigger_error('NOT_AUTHORISED');
+                if (!$is_author || !$this->auth->acl_get('u_tracker_delete'))
+                {
+                    trigger_error('NOT_AUTHORISED');
+                }
             }
 
             if (confirm_box(true))
@@ -102,9 +123,7 @@ class posting
 
                 if ($post_id == $main_post_id || (!$post_id && $ticket_id))
                 {
-                    // Al borrar el ticket completo, borramos todos los adjuntos de todos sus posts
                     $this->delete_ticket_attachments($ticket_id);
-
                     $this->db->sql_query('DELETE FROM ' . $this->tables['trackers_post'] . ' WHERE ticket_id = ' . (int) $ticket_id);
                     $this->db->sql_query('DELETE FROM ' . $this->tables['trackers_ticket'] . ' WHERE ticket_id = ' . (int) $ticket_id);
                     
@@ -114,9 +133,7 @@ class posting
                 }
                 else
                 {
-                    // Al borrar un comentario, solo borramos sus adjuntos específicos
                     $this->delete_post_attachments($post_id);
-
                     $this->db->sql_query('DELETE FROM ' . $this->tables['trackers_post'] . ' WHERE post_id = ' . (int) $post_id);
                     
                     $redirect = $this->helper->route('nextgen_trackers_controller', ['page' => 'viewticket', 't' => (int) $tracker_id, 'p' => (int) $project_id, 'ticket' => (int) $ticket_id]);
@@ -137,10 +154,17 @@ class posting
             }
         }
 
-        // Lógica de Guardado
+        // --- LÓGICA DE GUARDADO ---
         if ($this->request->is_set_post('post'))
         {
-            if (!check_form_key('nextgen_trackers_posting')) trigger_error('FORM_INVALID');
+            if ($mode == 'post' && !$ticket_id && !$this->auth->acl_get('u_tracker_create'))
+            {
+                trigger_error('NOT_AUTHORISED');
+            }
+            elseif (($mode == 'reply' || ($mode == 'post' && $ticket_id)) && !$this->auth->acl_get('u_tracker_reply'))
+            {
+                trigger_error('NOT_AUTHORISED');
+            }
 
             $message = $this->request->variable('message', '', true);
             $subject = $this->request->variable('subject', '', true);
@@ -225,6 +249,27 @@ class posting
             }
             elseif ($mode == 'edit' && $post_id)
             {
+                // SEGURIDAD: Propiedad Estricta
+                $sql = 'SELECT user_id, ticket_id FROM ' . $this->tables['trackers_post'] . ' WHERE post_id = ' . (int) $post_id;
+                $result = $this->db->sql_query($sql);
+                $row_edit = $this->db->sql_fetchrow($result);
+                $this->db->sql_freeresult($result);
+
+                $post_author_id = (int) $row_edit['user_id'];
+                $tid = (int) $row_edit['ticket_id'];
+
+                $is_author = ($this->user->data['user_id'] != ANONYMOUS && $this->user->data['user_id'] == $post_author_id);
+                $is_moderator = ($this->auth->acl_get('a_trackers') || $this->auth->acl_getf_global('m_') || $this->auth->acl_get('m_tracker_edit'));
+                $is_team_user = $functions->is_team_user($project_id);
+                
+                if (!$is_moderator && !$is_team_user)
+                {
+                    if (!$is_author || !$this->auth->acl_get('u_tracker_edit'))
+                    {
+                         trigger_error('NOT_AUTHORISED');
+                    }
+                }
+
                 $sql_ary = [
                     'post_text'       => (string) $message, 
                     'post_private'    => (int) $private, 
@@ -233,11 +278,6 @@ class posting
                     'bbcode_flags'    => (int) $flags
                 ];
                 $this->db->sql_query('UPDATE ' . $this->tables['trackers_post'] . ' SET ' . $this->db->sql_build_array('UPDATE', $sql_ary) . ' WHERE post_id = ' . (int) $post_id);
-
-                $sql = 'SELECT ticket_id FROM ' . $this->tables['trackers_post'] . ' WHERE post_id = ' . (int) $post_id;
-                $result = $this->db->sql_query($sql);
-                $tid = (int) $this->db->sql_fetchfield('ticket_id');
-                $this->db->sql_freeresult($result);
 
                 if ($tid)
                 {
@@ -354,8 +394,6 @@ class posting
         }
         $this->db->sql_freeresult($result);
 
-        add_form_key('nextgen_trackers_posting');
-
         $this->template->assign_vars([
             'TRACKER_ID'        => (int) $tracker_id,
             'PROJECT_ID'        => (int) $project_id,
@@ -374,7 +412,7 @@ class posting
             'S_FIRST_POST'      => $is_first_post,
             'L_POSTING_TITLE'   => ($mode == 'edit') ? (($is_first_post) ? $this->language->lang('EDIT_TICKET') : $this->language->lang('EDIT_COMMENT')) : (($ticket_id) ? $this->language->lang('REPLY_TICKET') : $this->language->lang('NEW_TICKET')),
             'U_ACTION'          => $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => $mode, 't' => $tracker_id, 'p' => $project_id, 'ticket' => $ticket_id, 'post' => $post_id]),
-			'U_CANCEL' 			=> $this->helper->route('nextgen_trackers_controller', ['page' => 'viewticket', 't' => $tracker_id, 'p' => $project_id, 'ticket' => $ticket_id]),
+            'U_CANCEL'             => $this->helper->route('nextgen_trackers_controller', ['page' => 'viewticket', 't' => $tracker_id, 'p' => $project_id, 'ticket' => $ticket_id]),
             'S_BBCODE_ALLOWED'  => true,
             'S_SMILIES_ALLOWED' => true,
             'S_LINKS_ALLOWED'   => true,
@@ -389,7 +427,7 @@ class posting
     protected function process_attachments($ticket_id, $post_id)
     {
         $functions = $this->container->get('nextgen.trackers.functions');
-        if (!$functions->can_user_attach()) return;
+        if (!$functions->can_user_attach($this->request->variable('p', 0))) return;
 
         $destination = $functions->prepare_attach_path(); 
         if (!$destination) return;
@@ -449,7 +487,6 @@ class posting
         
         while ($row = $this->db->sql_fetchrow($result))
         {
-            // Usamos la función centralizada de limpieza física
             $functions->delete_attachment($row['attach_id']);
         }
         $this->db->sql_freeresult($result);
@@ -464,7 +501,6 @@ class posting
         
         while ($row = $this->db->sql_fetchrow($result))
         {
-            // Usamos la función centralizada de limpieza física
             $functions->delete_attachment($row['attach_id']);
         }
         $this->db->sql_freeresult($result);

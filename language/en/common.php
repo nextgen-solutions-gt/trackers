@@ -25,6 +25,8 @@ $lang = array_merge($lang, [
     'ACP_TRACKERS_SETTINGS'      => 'General Settings',
     'TRACKERS_ENABLE'            => 'Enable Trackers',
     'TRACKERS_ENABLE_EXPLAIN'    => 'Enable or disable the tracker system globally.',
+    'TRACKERS_ENABLED'           => 'Enable Trackers', 
+    'TRACKERS_ENABLED_EXPLAIN'   => 'Enable or disable the tracker system globally.',
     'TRACKERS_PER_PAGE'          => 'Tickets per page',
     'TRACKERS_PER_PAGE_EXPLAIN'  => 'Number of tickets to display on the project view.',
     'GENERAL_SETTINGS'           => 'General Configuration',
@@ -32,16 +34,25 @@ $lang = array_merge($lang, [
     'ACP_TRACKERS_EXPLAIN'       => 'Here you can configure your bug trackers, manage specific projects, and define statuses or severities.',
     'ACP_TRACKERS_SEVERITIES'    => 'Manage Severities',
     'ACP_TRACKERS_STATUSES'      => 'Manage Statuses',
+    'ACP_TRACKERS_COMPONENTS'    => 'Manage Components',
     'ITEM_DELETED'               => 'Item successfully deleted.',
     'ITEM_UPDATED'               => 'Item successfully updated.',
+    'SETTINGS_UPDATED'           => 'Settings successfully updated.',
     'ADD'                        => 'Add',
     'EDIT'                       => 'Edit',
     'DELETE'                     => 'Delete',
     'NO_PAGE_MODE'               => 'Invalid or no page mode specified.',
+    'NO_ITEMS'                   => 'No items found.',
+
+    // ACP - Projects & Relations
+    'PROJECT_TYPE'               => 'Project Type',
+    'ASSIGN_TO_PROJECTS'         => 'Assign to Projects',
+    'ASSIGN_TO_PROJECTS_EXPLAIN' => 'Select which projects will use this item.',
 
     // ACP - Attachment Settings
     'ATTACHMENT_SETTINGS'        => 'Attachment Settings',
     'ALLOW_ATTACHMENTS'          => 'Allow Attachments',
+    'TRACKERS_ATTACHMENTS'       => 'Allow file uploads', 
     'MAX_ATTACH_SIZE'            => 'Maximum file size',
     'MAX_ATTACH_SIZE_EXPLAIN'    => 'Maximum size allowed for each attached file in KiB (0 for unlimited).',
     'ALLOWED_EXTENSIONS'         => 'Allowed extensions',
@@ -96,6 +107,8 @@ $lang = array_merge($lang, [
     'NO_TICKETS'             => 'There are no tickets to display.',
     'FILTER_TICKETS'         => 'Filter tickets',
     'CURRENT_STATUS'         => 'Currently showing',
+    'LOGIN_REQUIRED'         => 'You must be logged in to access the tracker.',
+    'TRACKER_DISABLED'       => 'The tracker system is currently disabled.',
 
     // Posting (New, Reply, Edit, Delete)
     'NEW_TICKET'               => 'New Ticket',
@@ -111,6 +124,7 @@ $lang = array_merge($lang, [
     'CONFIRM_DELETE_POST'      => 'Are you sure you want to delete this comment?',
     'RETURN_PROJECT'           => 'Click %1$sHERE%2$s to return to the project.',
     'RETURN_PAGE'              => 'Click %1$sHERE%2$s to return to the previous page.',
+    'RETURN_INDEX'              => 'Return to index page',
     'UPLOAD_ATTACHMENT'        => 'Upload Attachment',
 
     // Viewticket & Attachments
@@ -138,7 +152,7 @@ $lang = array_merge($lang, [
     'FILE_NOT_FOUND_ON_DISK' => 'The file was found in the database but is missing from the server storage.',
     'CLOSE_TICKET'           => 'Close Ticket',
     'TICKET_CLOSED_SUCCESS'  => 'The ticket has been closed successfully.',
-    'CLOSED'                 => 'Closed',
+    'CLOSED'                  => 'Closed',
 
     // History Logs
     'TICKET_ASSIGNED_TO' => 'Ticket assigned to: %s',

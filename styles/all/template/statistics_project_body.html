@@ -1,51 +1,65 @@
-{% INCLUDECSS '@nextgen_trackers/common.css' %}
 {% include 'overall_header.html' %}
 
+{% if S_TRACKER_ENABLED %}
+{% INCLUDECSS '@nextgen_trackers/common.css' %}
+
 <div class="extras">
-	<div class="mini-panel">
-	<div class="inner">
-		<h3>{{ TRACKER_NAME }}</h3>
-		<ul class="menu">
-			<li><a href="{{ U_TRACKER_STATS }}">{{ lang('TRACKER_STATISTICS') }}</a></li>
-		</ul>
-	</div>
-	</div>
+    <div class="mini-panel">
+        <div class="inner">
+            <h3>{{ TRACKER_NAME }}</h3>
+            <ul class="menu">
+                <li><a href="{{ U_TRACKER_STATS }}">{{ lang('TRACKER_STATISTICS') }}</a></li>
+            </ul>
+        </div>
+    </div>
 </div>
 
 <div class="main">
-	<h2 class="forum-title">{{ TRACKER_NAME }}</h2>
-	<p>
-		{{ STATISTICS_EXPLAIN }}{{ SEARCH_FILTER }}.
-	</p>
+    <h2 class="forum-title">{{ TRACKER_NAME }}</h2>
+    <p>
+        {{ STATISTICS_EXPLAIN }} {{ SEARCH_FILTER }}.
+    </p>
 
-	<h3>{{ lang('STATUS_OVERVIEW') }}</h3>
-	<div class="forabg">
-		<div class="inner">
-		<table class="table1" cellspacing="0">
-			<colgroup>
-				<col width="200" />
-			</colgroup>
-			<thead>
-				<tr>
-					<th align="left">{{ lang('STATUS') }}</th>
-					<th align="center">{{ lang('NUMBER_TICKETS') }}</th>
-					<th align="center">{{ lang('CLOSED_STATUS') }}</th>
-				</tr>
-			</thead>
-			<tbody>
-				{% if statuses %}
-				{% for status in statuses %}
-				<tr class="{% if status.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}">
-					<td><strong>{{ status.NAME }}</strong></td>
-					<td align="center">{{ status.TICKETS }}</td>
-					<td align="center">{% if status.S_CLOSED %}{{ lang('YES') }}{% else %}{{ lang('NO') }}{% endif %}</td>
-				</tr>
-				{% endfor %}
-				{% endif %}
-			</tbody>
-		</table>
-		</div>
-	</div>
+    <h3>{{ lang('STATUS_OVERVIEW') }}</h3>
+    <div class="forabg">
+        <div class="inner">
+        <table class="table1" cellspacing="0">
+            <colgroup>
+                <col width="200" />
+            </colgroup>
+            <thead>
+                <tr>
+                    <th align="left">{{ lang('STATUS') }}</th>
+                    <th align="center">{{ lang('NUMBER_TICKETS') }}</th>
+                    <th align="center">{{ lang('CLOSED') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if statuses|length %}
+                    {% for status in statuses %}
+                    <tr class="{% if status.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}">
+                        <td>
+                            <a href="{{ status.U_STATUS_FILTER }}"><strong>{{ status.NAME }}</strong></a>
+                        </td>
+                        <td align="center">{{ status.TICKETS }}</td>
+                        <td align="center">{% if status.S_CLOSED %}{{ lang('YES') }}{% else %}{{ lang('NO') }}{% endif %}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr class="bg1">
+                        <td colspan="3" align="center">{{ lang('NO_STATS') }}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+        </div>
+    </div>
 </div>
-
+{% else %}
+    <div class="rules">
+        <div class="inner">
+            {{ lang('TRACKER_DISABLED') }}
+        </div>
+    </div>
+{% endif %}
 {% include 'overall_footer.html' %}
