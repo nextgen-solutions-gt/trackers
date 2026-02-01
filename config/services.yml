@@ -113,6 +113,8 @@ services:
             - '@template'
             - '@user'
             - '@files.upload'
+            - '%core.root_path%'
+            - '%core.php_ext%'
             - '%core.table_prefix%'
             
     nextgen.trackers.notification.type.ticket_assigned:

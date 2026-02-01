@@ -20,12 +20,11 @@ if (empty($lang) || !is_array($lang))
 
 $lang = array_merge($lang, [
 	// Version Check
-	'VERSION_UP_TO_DATE'        => 'Extension is up to date',
-	'VERSION_NOT_UP_TO_DATE'    => 'A new version is available',
+	'TRACKERS_UP_TO_DATE'       => 'Your version of Trackers is up to date, no new updates are available.',
+	'NEW_VERSION_AVAILABLE'     => 'A new version is available',
 	'CURRENT_VERSION'           => 'Current version',
 	'LATEST_VERSION'            => 'Latest version',
 	'DOWNLOAD_LATEST'           => 'Download latest version',
-	'VIEW_ANNOUNCEMENT'         => 'View announcement',
 
     // ACP entries
 	'ACP_TRACKERS_DASHBOARD' 	 => 'Dashboard',

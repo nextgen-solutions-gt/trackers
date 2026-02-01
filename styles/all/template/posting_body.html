@@ -109,14 +109,17 @@
     </div>
     {% endif %}
 
-    <div class="panel bg2">
-        <div class="inner">
-            <fieldset class="submit-buttons">
-                <input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
-                <input type="submit" name="cancel" value="{{ lang('CANCEL') }}" class="button2" />
-            </fieldset>
-        </div>
-    </div>
+	<div class="panel bg2">
+		<div class="inner">
+			<fieldset class="submit-buttons">
+				<input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
+				<a href="{{ U_BACK_TRACKER }}" class="button2" style="display: inline-block; line-height: 18px; height: 20px; padding: 0 10px; text-decoration: none; box-sizing: border-box; vertical-align: middle;">
+					{{ lang('CANCEL') }}
+				</a>
+				{{ S_FORM_TOKEN }}
+			</fieldset>
+		</div>
+	</div>
 </form>
 
 {% include 'overall_footer.html' %}

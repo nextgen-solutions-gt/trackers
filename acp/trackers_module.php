@@ -15,8 +15,7 @@ class trackers_module
 	public $u_action;
 
 	/**
-	 * Eliminamos el constructor con argumentos para evitar que p_master 
-	 * se inyecte incorrectamente cuando phpBB instancia la clase.
+	 * Main entry point for the ACP module
 	 */
 	public function main($id, $mode)
 	{
@@ -28,18 +27,18 @@ class trackers_module
 		$this->tpl_name = 'acp_trackers_body';
 		$this->u_action = append_sid($this->u_action);
 
-		// Definimos las tablas aquí para asegurar que siempre sea un array válido
+		// Definición de tablas del sistema
 		$tables = [
-			'attachments'      => $table_prefix . 'trackers_attachments',
-			'attach_auth'     => $table_prefix . 'trackers_attachments_auth',
-			'components'       => $table_prefix . 'trackers_component',
-			'posts'            => $table_prefix . 'trackers_post',
-			'projects'         => $table_prefix . 'trackers_project',
-			'severities'       => $table_prefix . 'trackers_severity',
-			'statuses'         => $table_prefix . 'trackers_status',
-			'tickets'          => $table_prefix . 'trackers_ticket',
-			'trackers'         => $table_prefix . 'trackers_tracker',
-			'relations'        => $table_prefix . 'trackers_relations',
+			'attachments'   => $table_prefix . 'trackers_attachments',
+			'attach_auth'    => $table_prefix . 'trackers_attachments_auth',
+			'components'    => $table_prefix . 'trackers_component',
+			'posts'         => $table_prefix . 'trackers_post',
+			'projects'      => $table_prefix . 'trackers_project',
+			'severities'    => $table_prefix . 'trackers_severity',
+			'statuses'      => $table_prefix . 'trackers_status',
+			'tickets'       => $table_prefix . 'trackers_ticket',
+			'trackers'      => $table_prefix . 'trackers_tracker',
+			'relations'     => $table_prefix . 'trackers_relations',
 		];
 
 		add_form_key('acp_trackers');
@@ -72,27 +71,25 @@ class trackers_module
 		}
 	}
 
-
+	/**
+	 * Obtiene el contenido del Changelog desde GitHub
+	 */
 	private function get_github_changelog()
 	{
-		// Cambia esto por la ruta real en tu nuevo repositorio
 		$url = 'https://raw.githubusercontent.com/nextgen-solutions-gt/trackers/3.3/CHANGELOG.md';
-    
-		// Usamos el helper de phpBB para peticiones remotas de forma segura
 		$client = new \GuzzleHttp\Client(['timeout' => 5.0]);
-    
+	
 		try {
 			$response = $client->get($url);
-			$content = $response->getBody()->getContents();
-        
-			// Opcional: Si usas Markdown, podrías usar un parseador, 
-			// pero para el ACP basta con devolver el texto o procesar saltos de línea.
-			return nl2br(htmlspecialchars($content));
+			return nl2br(htmlspecialchars($response->getBody()->getContents()));
 		} catch (\Exception $e) {
 			return 'Could not load changelog: ' . $e->getMessage();
 		}
 	}
 
+	/**
+	 * Gestión del Dashboard principal
+	 */
 	protected function manage_dashboard($tables)
 	{
 		global $template, $user, $db, $phpbb_root_path, $request;
@@ -135,8 +132,32 @@ class trackers_module
 			$db->sql_freeresult($result);
 		}
 
-		$version_info = $this->get_version_info($phpbb_root_path);
+		// --- 3. Lógica Manual de Versiones (Base Sólida) ---
+		$composer_path = $phpbb_root_path . 'ext/nextgen/trackers/composer.json';
+		$current_version = '0.0.0';
 
+		if (file_exists($composer_path))
+		{
+			$composer_data = json_decode(file_get_contents($composer_path), true);
+			$current_version = (isset($composer_data['version'])) ? $composer_data['version'] : '0.0.0';
+		}
+
+		$remote_url = 'https://raw.githubusercontent.com/nextgen-solutions-gt/trackers/3.3/trackers_versions.json';
+		$latest_version = $current_version;
+		$download_url = '';
+
+		$remote_file = @file_get_contents($remote_url);
+		if ($remote_file)
+		{
+			$versions_data = json_decode($remote_file, true);
+			if (isset($versions_data['unstable']['3.3']['current']))
+			{
+				$latest_version = $versions_data['unstable']['3.3']['current'];
+				$download_url = $versions_data['unstable']['3.3']['download'];
+			}
+		}
+
+		// Asignación de variables a la plantilla
 		$template->assign_vars([
 			'S_MODE_DASHBOARD'    => true,
 			'U_ACTION'            => $this->u_action,
@@ -144,20 +165,31 @@ class trackers_module
 			'OPEN_TICKETS'        => $counts['open'],
 			'CLOSED_TICKETS'      => $counts['closed'],
 			'UNANSWERED_TICKETS'  => $counts['unanswered'],
-			'CURRENT_VERSION'     => $version_info['current'],
-			'LATEST_VERSION'      => $version_info['latest'],
-			'U_DOWNLOAD_LATEST'   => $version_info['download'],
-			'U_ANNOUNCEMENT'      => $version_info['announcement'],
-			'S_UP_TO_DATE'        => $version_info['up_to_date'],
-			'CHANGELOG_CONTENT' => $this->get_github_changelog(),
+			
+			'CURRENT_VERSION'     => $current_version,
+			'LATEST_VERSION'      => $latest_version,
+			'U_DOWNLOAD_LATEST'   => $download_url,
+			'S_UP_TO_DATE'        => version_compare($current_version, $latest_version, '>='),
+			
+			'CHANGELOG_CONTENT'   => $this->get_github_changelog(),
 		]);
 	}
 
+	/**
+	 * Configuración general de la extensión
+	 */
 	protected function manage_settings($tables)
 	{
 		global $template, $user, $config, $request, $db, $phpbb_root_path;
 
-		$version_info = $this->get_version_info($phpbb_root_path);
+		// Versión local para el encabezado
+		$composer_path = $phpbb_root_path . 'ext/nextgen/trackers/composer.json';
+		$current_version = '0.0.0';
+		if (file_exists($composer_path))
+		{
+			$composer_data = json_decode(file_get_contents($composer_path), true);
+			$current_version = $composer_data['version'] ?? '0.0.0';
+		}
 
 		$settings = [
 			'trackers_enabled'           => 1,
@@ -195,6 +227,7 @@ class trackers_module
 			trigger_error($user->lang('SETTINGS_UPDATED') . adm_back_link($this->u_action));
 		}
 
+		// Carga de grupos para permisos
 		$sql = 'SELECT group_id, group_name, group_type FROM ' . GROUPS_TABLE . ' WHERE group_type <> ' . GROUP_SPECIAL . ' OR group_name IN ("REGISTERED", "ADMINISTRATORS", "MODERATORS") ORDER BY group_name ASC';
 		$result = $db->sql_query($sql);
 		
@@ -217,53 +250,19 @@ class trackers_module
 			'S_MODE_SETTINGS'            => true,
 			'L_TITLE'                    => $user->lang('ACP_TRACKERS_SETTINGS'),
 			'U_ACTION'                   => $this->u_action,
-			'CURRENT_VERSION'            => $version_info['current'],
-			'LATEST_VERSION'             => $version_info['latest'],
-			'S_UP_TO_DATE'               => $version_info['up_to_date'],
-			'TRACKERS_ENABLED'           => isset($config['trackers_enabled']) ? (int) $config['trackers_enabled'] : $settings['trackers_enabled'],
-			'TRACKERS_PER_PAGE'          => isset($config['trackers_per_page']) ? (int) $config['trackers_per_page'] : $settings['trackers_per_page'],
-			'TRACKERS_ATTACHMENTS'       => isset($config['trackers_attachments']) ? (int) $config['trackers_attachments'] : $settings['trackers_attachments'],
-			'TRACKERS_ATTACH_MAX_SIZE'   => isset($config['trackers_attach_max_size']) ? (int) $config['trackers_attach_max_size'] : $settings['trackers_attach_max_size'],
-			'TRACKERS_ATTACH_EXTENSIONS' => isset($config['trackers_attach_extensions']) ? (string) $config['trackers_attach_extensions'] : $settings['trackers_attach_extensions'],
-			'TRACKERS_ATTACH_PATH'       => isset($config['trackers_attach_path']) ? (string) $config['trackers_attach_path'] : $settings['trackers_attach_path'],
+			'CURRENT_VERSION'            => $current_version,
+			'TRACKERS_ENABLED'           => $config['trackers_enabled'] ?? $settings['trackers_enabled'],
+			'TRACKERS_PER_PAGE'          => $config['trackers_per_page'] ?? $settings['trackers_per_page'],
+			'TRACKERS_ATTACHMENTS'       => $config['trackers_attachments'] ?? $settings['trackers_attachments'],
+			'TRACKERS_ATTACH_MAX_SIZE'   => $config['trackers_attach_max_size'] ?? $settings['trackers_attach_max_size'],
+			'TRACKERS_ATTACH_EXTENSIONS' => $config['trackers_attach_extensions'] ?? $settings['trackers_attach_extensions'],
+			'TRACKERS_ATTACH_PATH'       => $config['trackers_attach_path'] ?? $settings['trackers_attach_path'],
 		]);
 	}
 
-	private function get_version_info($phpbb_root_path)
-	{
-		$composer_path = $phpbb_root_path . 'ext/nextgen/trackers/composer.json';
-		$current_version = '0.0.0';
-		if (file_exists($composer_path))
-		{
-			$composer_data = json_decode(file_get_contents($composer_path), true);
-			$current_version = $composer_data['version'] ?? '0.0.0';
-		}
-
-		$remote_url = 'https://raw.githubusercontent.com/nextgen-solutions-gt/trackers/3.3/trackers_versions.json';
-		$latest_version = $current_version;
-		$download = $announcement = '';
-
-		$remote_data = @json_decode(@file_get_contents($remote_url), true);
-		if ($remote_data)
-		{
-			$branch = (strpos($current_version, 'RC') !== false) ? 'unstable' : 'stable';
-			if (isset($remote_data[$branch]))
-			{
-				$latest_version = key($remote_data[$branch]);
-				$download = $remote_data[$branch][$latest_version]['download'] ?? '';
-				$announcement = $remote_data[$branch][$latest_version]['announcement'] ?? '';
-			}
-		}
-
-		return [
-			'current'      => $current_version,
-			'latest'       => $latest_version,
-			'download'     => $download,
-			'announcement' => $announcement,
-			'up_to_date'   => version_compare($current_version, $latest_version, '>='),
-		];
-	}
-
+	/**
+	 * Gestión de Proyectos
+	 */
 	protected function manage_projects($project_table, $tracker_table)
 	{
 		global $template, $request, $user, $db;
@@ -364,6 +363,9 @@ class trackers_module
 		$template->assign_vars(['S_MODE_PROJECTS' => true, 'U_ACTION' => $this->u_action]);
 	}
 
+	/**
+	 * Gestión genérica de ítems (Status, Severities, Components)
+	 */
 	protected function manage_items($table, $type, $tables)
 	{
 		global $template, $request, $user, $db;

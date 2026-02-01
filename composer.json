@@ -3,7 +3,7 @@
     "type": "phpbb-extension",
     "description": "An incident, security, bug and feature tracker for phpBB.",
     "homepage": "https://nextgen.gt",
-    "version": "1.0.0-RC2",
+    "version": "1.0.0-RC3",
     "time": "2026-02-01",
     "license": "GPL-2.0-only",
     "authors": [

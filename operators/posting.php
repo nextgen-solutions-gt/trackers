@@ -23,10 +23,12 @@ class posting
 	protected $user;
 	protected $files_upload;
 	protected $db;
+	protected $root_path;
+	protected $php_ext;	
 	protected $tables;
 	protected $config;
 
-	public function __construct(\phpbb\auth\auth $auth, ContainerInterface $container, \phpbb\language\language $language, \phpbb\controller\helper $helper, \phpbb\request\request $request, \phpbb\template\template $template, \phpbb\user $user, \phpbb\files\upload $files_upload, $table_prefix)
+	public function __construct(\phpbb\auth\auth $auth, ContainerInterface $container, \phpbb\language\language $language, \phpbb\controller\helper $helper, \phpbb\request\request $request, \phpbb\template\template $template, \phpbb\user $user, \phpbb\files\upload $files_upload, $root_path, $php_ext, $table_prefix)
 	{
 		$this->auth = $auth;
 		$this->container = $container;
@@ -36,8 +38,11 @@ class posting
 		$this->template = $template;
 		$this->user = $user;
 		$this->files_upload = $files_upload;
+		$this->root_path = $root_path;
+        $this->php_ext = $php_ext;
 		$this->db = $container->get('dbal.conn');
 		$this->config = $container->get('config');
+
 
 		$this->tables = [
 			'trackers_tracker'      => $table_prefix . 'trackers_tracker',
@@ -419,6 +424,11 @@ class posting
 			'S_CAN_ATTACH'      => $functions->can_user_attach($project_id),
 			'MAX_ATTACH_SIZE'   => (int) $this->config['trackers_attach_max_size'],
 			'ALLOWED_EXT'       => (string) $this->config['trackers_attach_extensions'],
+			'U_BACK_TRACKER' => $this->helper->route('nextgen_trackers_controller', [
+				'page' => 'viewproject', 
+				't'    => (int) $tracker_id, 
+				'p'    => (int) $project_id
+			]),
 		]);
 
 		return $this->helper->render('posting_body.html', $this->language->lang('POSTING'));
