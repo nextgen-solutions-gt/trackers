@@ -1,0 +1,110 @@
+{% include 'overall_header.html' %}
+
+{% if S_TRACKER_ENABLED %}
+{% INCLUDECSS '@nextgen_trackers/common.css' %}
+
+<div class="extras">
+	<div class="mini-panel panel">
+	<div class="inner">
+		<h3>{{ TRACKER_NAME }}</h3>
+		<ul class="menu">
+			{% for tracker in trackers_stats %}<li><a href="{{ tracker.U_TRACKER_STATS }}">{{ tracker.TRACKER_NAME }}</a></li>{% endfor %}
+		</ul>
+	</div>
+	</div>
+</div>	
+<h2 class="forum-title">{{ TRACKER_NAME }}{{ lang('COLON') }} {{ lang('TRACKER_STATISTICS') }}</h2>
+<div class="main">
+	<div class="panel rules">
+		<div class="inner">
+			{% if STATISTICS_EXPLAIN %}{{ STATISTICS_EXPLAIN }}{% endif %}
+		</div>
+	</div>
+	<br>
+	<div class="forabg">
+		<div class="inner">
+			<table class="table1">
+				<thead>
+					<tr>
+						<th class="name">{{ TIMESPAN_TICKETS }}</th>
+						<th class="center" style="width: 20%;">{{ lang('OPEN_TICKETS') }}</th>
+						<th class="center" style="width: 20%;">{{ lang('CLOSED_TICKETS') }}</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% if projects|length %}
+					{% for project in projects %}
+						<tr class="{% if project.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}">
+							<td class="name">
+								<div class="list-inner">
+									<strong>{% if project.U_PROJECT %}<a href="{{ project.U_PROJECT }}">{% endif %}{{ project.NAME }}{% if project.U_PROJECT %}</a>{% endif %}</strong>
+								</div>
+							</td>
+							<td class="center">{{ project.OPEN }}</td>
+							<td class="center">{{ project.CLOSED }}</td>
+						</tr>
+					{% endfor %}
+				{% else %}
+					<tr class="bg1">
+						<td colspan="3" class="center" style="padding: 20px;">{{ lang('NO_STATS') }}</td>
+					</tr>
+				{% endif %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="forabg" style="margin-top: 20px;">
+		<div class="inner">
+			<table class="table1">
+				<thead>
+					<tr>
+						<th class="name">{{ lang('TOTALS') }}</th>
+						<th class="center" style="width: 20%;">{{ lang('OPEN_TICKETS') }}</th>
+						<th class="center" style="width: 20%;">{{ lang('CLOSED_TICKETS') }}</th>
+					</tr>
+				</thead>
+				<tbody>
+				{% if projects_total|length %}
+					{% for project_total in projects_total %}
+						<tr class="{% if project_total.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}">
+							<td class="name">
+								<div class="list-inner">
+									<strong>{% if project_total.U_PROJECT %}<a href="{{ project_total.U_PROJECT }}">{% endif %}{{ project_total.NAME }}{% if project_total.U_PROJECT %}</a>{% endif %}</strong>
+								</div>
+							</td>
+							<td class="center">{{ project_total.OPEN }}</td>
+							<td class="center">{{ project_total.CLOSED }}</td>
+						</tr>
+					{% endfor %}
+				{% else %}
+					<tr class="bg1">
+						<td colspan="3" class="center" style="padding: 20px;">{{ lang('NO_STATS') }}</td>
+					</tr>
+				{% endif %}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="action-bar bar-bottom">
+		<div class="buttons">
+			<a href="{{ U_VIEWTRACKER }}" title="{{ lang('TRACKERS') }}">
+				<i class="icon fa-chevron-left fa-fw" aria-hidden="true"></i><span>{{ lang('TRACKERS') }}</span>
+			</a>
+
+		<div class="pagination">
+			&bull; {{ projects|length }} {{ lang('PROJECTS') }}
+		</div>			
+		</div>
+	</div>	
+	<br>
+</div>
+{% else %}
+	<div class="rules">
+		<div class="inner">{{ lang('TRACKER_DISABLED') }}</div>
+	</div>
+{% endif %}
+<br>
+
+{% include 'overall_footer.html' %}

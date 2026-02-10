@@ -1,0 +1,75 @@
+/* Dashboard Statistics Modernization */
+.stats-container {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 25px;
+}
+
+.stat-box {
+    flex: 1;
+    text-align: center;
+    padding: 25px 15px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.stat-box .count {
+    display: block;
+    font-size: 2.5em;
+    font-weight: bold;
+    line-height: 1.2;
+    margin-bottom: 5px;
+}
+
+.stat-box .label {
+    font-size: 0.9em;
+    text-transform: uppercase;
+    color: #666;
+    letter-spacing: 0.5px;
+}
+
+/* Colores específicos */
+.stat-box.green { border-top: 4px solid #28a745; }
+.stat-box.green .count { color: #28a745; }
+
+.stat-box.red { border-top: 4px solid #d31141; }
+.stat-box.red .count { color: #d31141; }
+
+.stat-box.gray { border-top: 4px solid #6c757d; }
+.stat-box.gray .count { color: #6c757d; }
+
+/* Changelog Styles */
+.changelog-header {
+    background: #f1f1f1;
+    padding: 10px 15px;
+    border-bottom: 1px solid #e5e5e5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: monospace;
+}
+
+.changelog-dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+.dot-red { background: #ff5f56; }
+.dot-yellow { background: #ffbd2e; }
+.dot-green { background: #27c93f; }
+
+.changelog-box {
+    padding: 15px;
+    background: #fafafa;
+    min-height: 100px;
+    max-height: 300px;
+    overflow-y: auto;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    color: #333;
+}

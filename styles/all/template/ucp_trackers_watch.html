@@ -1,0 +1,51 @@
+{% include 'ucp_header.html' %}
+
+<form id="ucp" method="post" action="{{ U_ACTION }}">
+
+<h2>{{ lang('UCP_TRACKERS_WATCH_LIST') }}</h2>
+
+<div class="panel">
+	<div class="inner">
+		<p>{{ lang('UCP_TRACKERS_WATCH_EXPLAIN') }}</p>
+
+		{% if loops.watch|length %}
+			<ul class="topiclist two-columns">
+				<li class="header">
+					<dl>
+						<dt><div class="list-inner">{{ lang('TICKET_TITLE') }}</div></dt>
+						<dd class="mark">{{ lang('MARK') }}</dd>
+					</dl>
+				</li>
+			</ul>
+			<ul class="topiclist cplist two-columns">
+			{% for watch in loops.watch %}
+				<li class="row{% if watch.S_ROW_COUNT is odd %} bg1{% else %} bg2{% endif %}">
+					<dl>
+						<dt>
+							<div class="list-inner">
+								<a href="{{ watch.U_TICKET }}" class="topictitle">{{ watch.TICKET_TITLE }}</a>
+							</div>
+						</dt>
+						<dd class="mark">
+							<input type="checkbox" name="t_ids[]" value="{{ watch.TICKET_ID }}" />
+						</dd>
+					</dl>
+				</li>
+			{% endfor %}
+			</ul>
+
+			<fieldset class="display-actions">
+				<input class="button2" type="submit" name="unwatch" value="{{ lang('STOP_WATCHING_TICKET') }}" />
+				<div><a href="#" onclick="marklist('ucp', 't_ids', true); return false;">{{ lang('MARK_ALL') }}</a> &bull; <a href="#" onclick="marklist('ucp', 't_ids', false); return false;">{{ lang('UNMARK_ALL') }}</a></div>
+				{{ S_FORM_TOKEN }}
+			</fieldset>
+
+		{% else %}
+			<p><strong>{{ lang('NO_WATCHED_TICKETS') }}</strong></p>
+		{% endif %}
+	</div>
+</div>
+
+</form>
+
+{% include 'ucp_footer.html' %}

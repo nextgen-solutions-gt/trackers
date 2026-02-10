@@ -1,3 +1,31 @@
-kinerity_trackers_controller:
+# Main Entry Point - Redirects to the main view of Trackers
+nextgen_trackers_base:
+    path: /trackers/
+    defaults: { _controller: nextgen.trackers.controller:display, page: viewtracker }
+    methods: [GET]
+
+# Download Handler - Handles the secure download of attachments
+nextgen_trackers_download:
+    path: /trackers/download/{attach_id}
+    defaults: { _controller: nextgen.trackers.controller:download }
+    requirements:
+        attach_id: '\d+'
+    methods: [GET]
+
+# Specific Ticket Route - Handles pages with a ticket ID in the path (e.g., /trackers/viewticket/4)
+# Se coloca antes que la genérica para que Symfony capture primero la ruta con ID
+nextgen_trackers_ticket:
+    path: /trackers/{page}/{ticket}
+    defaults: { _controller: nextgen.trackers.controller:display, ticket: 0 }
+    requirements:
+        page: '\w+'
+        ticket: '\d+'
+    methods: [GET, POST]
+
+# Generic Page Route - Handles pages without ID in path (e.g., /trackers/posting)
+nextgen_trackers_page:
     path: /trackers/{page}
-    defaults: { _controller: kinerity.trackers.controller.main:display }
+    defaults: { _controller: nextgen.trackers.controller:display }
+    requirements:
+        page: '\w+'
+    methods: [GET, POST]

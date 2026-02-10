@@ -1,0 +1,10 @@
+Subject: New reply to ticket - {TICKET_TITLE}
+
+Hello,
+
+{AUTHOR_NAME} has replied to the ticket: "{TICKET_TITLE}".
+
+You can view the new reply by clicking on the following link:
+{U_TICKET}
+
+{EMAIL_SIG}

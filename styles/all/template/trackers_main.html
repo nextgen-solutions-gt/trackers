@@ -1,0 +1,61 @@
+{% include 'overall_header.html' %}
+
+{% if S_TRACKER_ENABLED %}
+{% INCLUDECSS '@nextgen_trackers/common.css' %}
+
+<h2 class="tracker-title">{{ lang('TRACKERS') }}</h2>
+
+<div class="forumbg">
+	<div class="inner">
+		<ul class="topiclist">
+			<li class="header">
+				<dl class="row-item">
+					<dt><div class="list-inner">{{ lang('TRACKER_NAME') }}</div></dt>
+					<dd class="topics">{{ lang('PROJECTS') }}</dd>
+					<dd class="posts">{{ lang('TICKETS') }}</dd>
+				</dl>
+			</li>
+		</ul>
+		<ul class="topiclist forums">
+		{% for tracker in trackers_list %}
+			<li class="row">
+				<dl class="row-item">
+					<dt title="{{ tracker.TRACKER_DESC }}">
+						<div class="list-inner">
+							<a href="{{ tracker.U_VIEW_TRACKER }}" class="forumtitle">
+								<i class="icon fa {{ tracker.TRACKER_ICON }} fa-fw tracker-icon" style="color: {{ tracker.TRACKER_COLOR }};"></i><span class="tracker-text">{{ tracker.TRACKER_NAME }}</span>
+							</a>
+							<br />
+							<span class="tracker-desc">{{ tracker.TRACKER_DESC }}</span>
+							
+							<div class="responsive-show" style="display: none;">
+								{{ lang('PROJECTS') }}: <strong>{{ tracker.TOTAL_PROJECTS }}</strong> &bull; 
+								{{ lang('TICKETS') }}: <strong>{{ tracker.TOTAL_TICKETS }}</strong>
+							</div>
+						</div>
+					</dt>
+					
+					<dd class="topics">{{ tracker.TOTAL_PROJECTS }} <dfn>{{ lang('PROJECTS') }}</dfn></dd>
+					<dd class="posts">{{ tracker.TOTAL_TICKETS }} <dfn>{{ lang('TICKETS') }}</dfn></dd>
+				</dl>
+			</li>
+		{% else %}
+			<li class="row">
+				<div class="panel">
+					<div class="inner">
+						<strong>{{ lang('NO_TRACKERS_AVAILABLE') }}</strong>
+					</div>
+				</div>
+			</li>
+		{% endfor %}
+		</ul>
+	</div>
+</div>
+
+{% else %}
+    <div class="rules">
+        <div class="inner">{{ lang('TRACKER_DISABLED') }}</div>
+    </div>
+{% endif %}
+<br>
+{% include 'overall_footer.html' %}

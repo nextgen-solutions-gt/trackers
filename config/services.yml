@@ -1,9 +1,17 @@
 imports:
     - { resource: tables.yml }
 
+parameters:
+    nextgen.trackers.tables.prefix: 'phpbb_trackers_'
+
 services:
-    kinerity.trackers.functions:
-        class: kinerity\trackers\functions
+    nextgen.trackers.acp.trackers_module:
+        class: nextgen\trackers\acp\trackers_module
+        arguments:
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.includes.functions:
+        class: nextgen\trackers\includes\functions
         arguments:
             - '@auth'
             - '@config'
@@ -15,60 +23,76 @@ services:
             - '@template'
             - '@user'
             - '%core.php_ext%'
-            - '%tables%'
+            - '%nextgen.trackers.tables.prefix%'
 
-    kinerity.trackers.controller.main:
-        class: kinerity\trackers\controller\main_controller
-        arguments:
-            - '@service_container'
-            - '@language'
-
-    kinerity.trackers.listener:
-        class: kinerity\trackers\event\main_listener
-        arguments:
-            - '@dbal.conn'
-            - '@language'
-            - '@controller.helper'
-            - '@template'
-            - '%tables%'
-        tags:
-            - { name: event.listener }
-
-    kinerity.trackers.viewtracker:
-        class: kinerity\trackers\operators\viewtracker
-        arguments:
-            - '@service_container'
-            - '@language'
-            - '@controller.helper'
-            - '@request'
-            - '@template'
-            - '@user'
-
-    kinerity.trackers.viewproject:
-        class: kinerity\trackers\operators\viewproject
-        arguments:
-            - '@config'
-            - '@service_container'
-            - '@language'
-            - '@controller.helper'
-            - '@request'
-            - '@template'
-            - '@user'
-
-    kinerity.trackers.viewticket:
-        class: kinerity\trackers\operators\viewticket
+    nextgen.trackers.controller:
+        class: nextgen\trackers\controller\main_controller
         arguments:
             - '@auth'
             - '@config'
+            - '@content.visibility'
+            - '@controller.helper'
+            - '@dbal.conn'
+            - '@language'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@service_container'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.listener:
+        class: nextgen\trackers\event\main_listener
+        arguments:
+            - '@dbal.conn'
+            - '@language'
+            - '@controller.helper'
+            - '@template'
+            - '%nextgen.trackers.tables.prefix%'
+        tags:
+            - { name: event.listener }
+
+    nextgen.trackers.operators.viewtracker:
+        class: nextgen\trackers\operators\viewtracker
+        arguments:
+            - '@config'
             - '@service_container'
             - '@language'
             - '@controller.helper'
             - '@request'
             - '@template'
             - '@user'
+            - '%nextgen.trackers.tables.prefix%'
 
-    kinerity.trackers.statistics:
-        class: kinerity\trackers\operators\statistics
+    nextgen.trackers.operators.viewproject:
+        class: nextgen\trackers\operators\viewproject
+        arguments:
+            - '@config'
+            - '@auth'
+            - '@service_container'
+            - '@language'
+            - '@controller.helper'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.operators.viewticket:
+        class: nextgen\trackers\operators\viewticket
+        arguments:
+            - '@config'
+            - '@auth'
+            - '@service_container'
+            - '@language'
+            - '@controller.helper'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.operators.statistics:
+        class: nextgen\trackers\operators\statistics
         arguments:
             - '@config'
             - '@service_container'
@@ -78,4 +102,109 @@ services:
             - '@request'
             - '@template'
             - '@user'
-            - '%tables%'
+            - '@auth'
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.operators.posting:
+        class: nextgen\trackers\operators\posting
+        arguments:
+            - '@auth'
+            - '@service_container'
+            - '@language'
+            - '@controller.helper'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@files.upload'
+            - '@log'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.operators.moderate:
+        class: nextgen\trackers\operators\moderate
+        arguments:
+            - '@dbal.conn'
+            - '@auth'
+            - '@request'
+            - '@template'
+            - '@controller.helper'
+            - '@language'
+            - '@user'
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.operators.report:
+        class: nextgen\trackers\operators\report
+        arguments:
+            - '@auth'
+            - '@dbal.conn'
+            - '@controller.helper'
+            - '@language'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@service_container'
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.operators.my_tickets:
+        class: nextgen\trackers\operators\my_tickets
+        arguments:
+            - '@auth'
+            - '@config'
+            - '@dbal.conn'
+            - '@controller.helper'
+            - '@language'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '%nextgen.trackers.tables.prefix%'
+            
+    nextgen.trackers.notification.type.ticket_assigned:
+        class: nextgen\trackers\notification\type\ticket_assigned
+        shared: false
+        parent: notification.type.base
+        calls:
+            - [set_config, ['@config']]
+            - [set_user_loader, ['@user_loader']]
+            - [set_helper, ['@controller.helper']]
+        tags:
+            - { name: notification.type }
+
+    nextgen.trackers.notification.type.ticket_reply:
+        class: nextgen\trackers\notification\type\ticket_reply
+        shared: false
+        parent: notification.type.base
+        calls:
+            - [set_config, ['@config']]
+            - [set_user_loader, ['@user_loader']]
+            - [set_helper, ['@controller.helper']]
+        tags:
+            - { name: notification.type }
+
+    nextgen.trackers.notification.type.ticket_reported:
+        class: nextgen\trackers\notification\type\ticket_reported
+        shared: false
+        parent: notification.type.base
+        calls:
+            - [set_config, ['@config']]
+            - [set_helper, ['@controller.helper']]
+        tags:
+            - { name: notification.type }
+
+    nextgen.trackers.notification.type.ticket_update:
+        class: nextgen\trackers\notification\type\ticket_update
+        shared: false
+        arguments:
+            - '@dbal.conn'
+            - '@auth'
+            - '@config'
+            - '@language'
+            - '@controller.helper'
+            - '@user'
+            - '@notification_manager'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+            - '%core.table_prefix%'
+            - '%nextgen.trackers.tables.prefix%'
+        tags:
+            - { name: notification.type }

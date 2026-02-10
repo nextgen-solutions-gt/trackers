@@ -1,0 +1,12 @@
+Subject: Ticket Assigned - {TICKET_TITLE}
+
+Hello,
+
+A ticket has been assigned to you in the Tracker.
+
+Ticket Title: {TICKET_TITLE}
+
+You can view the ticket by clicking on the following link:
+{U_TICKET}
+
+{EMAIL_SIG}

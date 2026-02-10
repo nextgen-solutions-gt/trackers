@@ -1,0 +1,165 @@
+{% include 'overall_header.html' %}
+
+<h2 class="posting-title">{{ L_POSTING_TITLE }}</h2>
+
+<form id="postform" method="post" action="{{ U_ACTION }}" enctype="multipart/form-data">
+    
+    <input type="hidden" name="t" value="{{ TRACKER_ID }}" />
+    <input type="hidden" name="p" value="{{ PROJECT_ID }}" />
+    <input type="hidden" name="ticket" value="{{ TICKET_ID }}" />
+    <input type="hidden" name="tracker_edit_id" value="{{ POST_ID }}" />
+    <input type="hidden" name="mode" value="{% if S_EDIT_POST %}edit{% elseif S_REPLY_TICKET %}reply{% else %}post{% endif %}" />
+    
+    {{ S_FORM_TOKEN }}
+    {{ S_HIDDEN_FIELDS }}
+
+    <div class="panel" id="postingbox">
+        <div class="inner">
+            <fieldset class="fields1">
+                {% if ERROR %}<dl><dd class="error">{{ ERROR }}</dd></dl>{% endif %}
+
+                {% if S_NEW_TICKET or S_FIRST_POST %}
+                <dl style="clear: left;">
+                    <dt><label for="subject">{{ lang('TITLE') }}{{ lang('COLON') }}</label></dt>
+                    <dd><input type="text" name="subject" id="subject" size="45" maxlength="120" class="inputbox autowidth" value="{{ SUBJECT }}" required /></dd>
+                </dl>
+                
+                <dl>
+                    <dt><label for="severity">{{ lang('SEVERITY') }}{{ lang('COLON') }}</label></dt>
+                    <dd>
+                        {% if S_HAS_SEVERITIES %}
+                            <select name="severity" id="severity">
+                                {% for sev in severities %}
+                                    <option value="{{ sev.ID }}" {% if sev.ID == SEVERITY_ID %} selected="selected"{% endif %}>{{ sev.NAME }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <span style="color: #bcbcbc; font-style: italic;">{{ lang('UNCATEGORISED') }}</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+
+                <dl>
+                    <dt><label for="component_id">{{ lang('COMPONENT') }}{{ lang('COLON') }}</label></dt>
+                    <dd>
+                        {% if S_HAS_COMPONENTS %}
+                            <select name="component_id" id="component_id">
+                                <option value="0">{{ lang('UNKNOWN') }}</option>
+                                {% for comp in components %}
+                                    <option value="{{ comp.ID }}" {% if comp.S_SELECTED %} selected="selected"{% endif %}>{{ comp.NAME }}</option>
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                            <span style="color: #bcbcbc; font-style: italic;">{{ lang('UNKNOWN') }}</span>
+                        {% endif %}
+                    </dd>
+                </dl>
+
+                <dl>
+                    <dt><label for="private">{{ lang('PRIVATE') }}{{ lang('COLON') }}</label></dt>
+                    <dd>
+                        <label><input type="radio" name="private" value="1" {% if S_PRIVATE %}checked="checked"{% endif %} /> {{ lang('YES') }}</label>
+                        <label><input type="radio" name="private" value="0" {% if not S_PRIVATE %}checked="checked"{% endif %} /> {{ lang('NO') }}</label>
+                    </dd>
+                </dl>
+                {% endif %}
+
+                {% set S_SMILIES_ALLOWED_BK = S_SMILIES_ALLOWED %}
+                {% include 'posting_buttons.html' %}
+                {% set S_SMILIES_ALLOWED = S_SMILIES_ALLOWED_BK %}
+
+                <div id="smiley-box" class="smiley-box">
+                    {% if S_SMILIES_ALLOWED and smiley %}
+                        <strong>{{ lang('SMILIES') }}</strong><br />
+                        {% for s in smiley %}
+                            <a href="#" onclick="insert_text('{{ s.A_SMILEY_CODE }}', true); return false;">
+                                <img src="{{ s.SMILEY_IMG }}" width="{{ s.SMILEY_WIDTH }}" height="{{ s.SMILEY_HEIGHT }}" alt="{{ s.SMILEY_CODE }}" title="{{ s.SMILEY_DESC }}" />
+                            </a>
+                        {% endfor %}
+                    {% endif %}
+
+                    {% if S_SHOW_SMILEY_LINK and S_SMILIES_ALLOWED %}
+                        <br /><a href="{{ U_MORE_SMILIES }}" onclick="popup(this.href, 750, 350, '_phpbbsmilies'); return false;">{{ lang('MORE_SMILIES') }}</a>
+                    {% endif %}
+                </div>
+
+                <div id="message-box" class="message-box">
+                    <textarea tabindex="1" name="message" id="message" rows="15" cols="76" class="inputbox" data-bbcode="true">{{ MESSAGE }}</textarea>
+                </div>
+            </fieldset>
+        </div>
+    </div>
+
+{% if attach_row %}
+	<div class="panel bg2" id="attach-list">
+		<div class="inner">
+			<fieldset class="fields2">
+				<strong>{{ lang('ATTACHMENTS') }}</strong><br />
+				<span style="font-size: 0.9em; color: #666;">{{ lang('ATTACHMENTS_EXPLAIN') }}</span>
+				
+				<table class="table1 phpbb-attach-table" style="margin-top: 10px;">
+					<thead>
+						<tr>
+							<th>{{ lang('FILENAME') }}</th>
+							<th style="text-align: center;">{{ lang('DELETE') }}</th>
+							<th style="text-align: center;">{{ lang('SIZE') }}</th>
+							<th style="text-align: center;">{{ lang('STATUS') }}</th>
+						</tr>
+					</thead>
+					<tbody>
+					{% for row in attach_row %}
+						<tr class="{% if row.S_ROW_COUNT is odd %}bg1{% else %}bg2{% endif %}">
+							<td>
+								<i class="icon fa-file-o fa-fw" aria-hidden="true"></i> 
+								<span style="font-weight: bold; color: #333;">{{ row.FILENAME }}</span>
+							</td>
+							<td style="text-align: center;">
+								<label style="display: inline-block; cursor: pointer;">
+									<input type="checkbox" name="delete_attach[]" value="{{ row.ATTACH_ID }}" /> {{ lang('DELETE_FILE') }}
+								</label>
+							</td>
+							<td style="text-align: center; white-space: nowrap;">{{ row.FILESIZE }}</td>
+							<td style="text-align: center;">
+								<i class="icon fa-check-circle fa-fw" style="color: #228822;" title="{{ lang('UPLOADED') }}"></i>
+							</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</fieldset>
+		</div>
+	</div>
+    {% endif %}
+
+    {% if S_CAN_ATTACH %}
+    <div class="panel bg2" id="attachment-panel">
+        <div class="inner">
+            <fieldset class="fields2">
+                <dl>
+                    <dt><label for="tracker_attachments">{{ lang('UPLOAD_ATTACHMENT') }}{{ lang('COLON') }}</label><br />
+                        <span style="font-size: 0.9em; color: #666;">{{ lang('MAX_ATTACH_SIZE') }}{{ lang('COLON') }} {{ MAX_ATTACH_SIZE }} KiB</span><br />
+                        <span style="font-size: 0.9em; color: #666;">{{ lang('ALLOWED_EXTENSIONS') }}{{ lang('COLON') }} {{ ALLOWED_EXT }}</span>
+                    </dt>
+                    <dd>
+                        <input type="file" name="tracker_attachments" id="tracker_attachments" class="inputbox autowidth" />
+                    </dd>
+                </dl>
+            </fieldset>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="panel bg2">
+        <div class="inner">
+            <fieldset class="submit-buttons">
+                <input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
+                <a href="{{ U_BACK_TRACKER }}" class="button2" style="display: inline-block; line-height: 18px; height: 20px; padding: 0 10px; text-decoration: none; box-sizing: border-box; vertical-align: middle;">
+                    {{ lang('CANCEL') }}
+                </a>
+                {{ S_FORM_TOKEN }}
+            </fieldset>
+        </div>
+    </div>
+</form>
+
+{% include 'overall_footer.html' %}
