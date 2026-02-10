@@ -3,7 +3,7 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -20,14 +20,14 @@ class m5_setup_acp_modules extends \phpbb\db\migration\migration
     public function update_data()
     {
         return [
-            // 1. Crear la categoría principal
+            // 1. Create the main category
             ['module.add', [
                 'acp',
                 'ACP_CAT_DOT_MODS',
                 'ACP_TRACKERS'
             ]],
 
-            // 2. Añadir el Dashboard de forma explícita (para que use la clave de lenguaje correcta)
+            // 2. Add the Dashboard explicitly (so that it uses the correct language key)
             ['module.add', [
                 'acp',
                 'ACP_TRACKERS',
@@ -39,7 +39,7 @@ class m5_setup_acp_modules extends \phpbb\db\migration\migration
                 ],
             ]],
 
-            // 3. Añadir el resto de los modos en grupo
+            // 3. Add the rest of the modes in a group
             ['module.add', [
                 'acp',
                 'ACP_TRACKERS',

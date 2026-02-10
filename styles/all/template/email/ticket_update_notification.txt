@@ -1,0 +1,12 @@
+Subject: Ticket Update - {TICKET_TITLE}
+
+Hello {USERNAME},
+
+You are receiving this notification because you are watching the ticket "{TICKET_TITLE}" on {SITENAME}. This ticket has received a new update or comment from {AUTHOR_NAME}.
+
+You can view the latest updates by clicking on the following link:
+{U_TICKET}
+
+If you want to stop watching this ticket, please visit the link above and click "Stop watching ticket".
+
+{EMAIL_SIG}

@@ -3,26 +3,25 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
 namespace nextgen\trackers\migrations\v10x;
 
-class m13_attachments_and_auth extends \phpbb\db\migration\migration
+class m12_attachments_and_auth extends \phpbb\db\migration\migration
 {
     static public function depends_on()
     {
-        // Depende de la m12 para seguir la cadena
-        return ['\nextgen\trackers\migrations\v10x\m12_component_structure'];
+        return ['\nextgen\trackers\migrations\v10x\m11_component_structure'];
     }
 
     public function update_schema()
     {
         return [
             'add_tables' => [
-                // Nueva tabla de adjuntos plural
+                // New plural attachment table
                 $this->table_prefix . 'trackers_attachments' => [
                     'COLUMNS' => [
                         'attach_id'         => ['UINT', null, 'auto_increment'],
@@ -42,11 +41,11 @@ class m13_attachments_and_auth extends \phpbb\db\migration\migration
                         'ticket_id' => ['INDEX', ['ticket_id']],
                     ],
                 ],
-                // Tabla de permisos granulares
+                // Granular permissions table
                 $this->table_prefix . 'trackers_attachments_auth' => [
                     'COLUMNS' => [
                         'group_id'    => ['UINT', 0],
-                        'project_id'  => ['UINT', 0], // 0 = Global para todos los proyectos
+                        'project_id'  => ['UINT', 0], // 0 = Global for all projects
                         'can_attach'  => ['BOOL', 0],
                     ],
                     'KEYS' => [
@@ -60,7 +59,7 @@ class m13_attachments_and_auth extends \phpbb\db\migration\migration
     public function update_data()
     {
         return [
-            // Insertamos los valores por defecto que el módulo ACP espera encontrar
+            // We insert the default values that the ACP module expects to find.
             ['config.add', ['trackers_enabled', 1]],
             ['config.add', ['trackers_per_page', 15]],
             ['config.add', ['trackers_attachments', 1]],

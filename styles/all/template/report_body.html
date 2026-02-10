@@ -1,0 +1,33 @@
+{% include 'overall_header.html' %}
+
+<form id="report" method="post" action="{{ S_REPORT_ACTION }}">
+
+<div class="panel">
+	<div class="inner">
+		<div class="content">
+			<h2 class="message-title">{{ lang('REPORT_TICKET') }}{{ lang('COLON') }} {{ TICKET_TITLE }}</h2>
+			<p>{{ lang('REPORT_TICKET_EXPLAIN') }}</p>
+
+			<fieldset class="fields1">
+				<dl>
+					<dt><label for="report_reason">{{ lang('REPORT_REASON') }}{{ lang('COLON') }}</label></dt>
+					<dd>
+						<textarea name="report_reason" id="report_reason" rows="10" cols="76" class="inputbox" placeholder="{{ lang('REPORT_TEXT_EXPLAIN') }}"></textarea>
+					</dd>
+				</dl>
+			</fieldset>
+
+			<fieldset class="submit-buttons">
+				{{ S_HIDDEN_FIELDS }}
+				<input type="submit" name="submit" value="{{ lang('SUBMIT') }}" class="button1" />&nbsp;
+				<input type="submit" name="cancel" value="{{ lang('CANCEL') }}" class="button2" />
+				{{ S_FORM_TOKEN }}
+			</fieldset>
+		</div>
+	</div>
+</div>
+
+</form>
+<br>
+
+{% include 'overall_footer.html' %}

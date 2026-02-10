@@ -3,7 +3,7 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -66,7 +66,7 @@ class viewproject
 
     public function display()
     {
-        // 1. Verificación inmediata del estado global
+        // 1. Immediate verification of overall status
         $is_enabled = (isset($this->config['trackers_enabled'])) ? (bool) $this->config['trackers_enabled'] : true;
 
         $tracker_id = $this->request->variable('t', 0);
@@ -74,7 +74,7 @@ class viewproject
         $start = $this->request->variable('start', 0);
         $ticket_status = $this->request->variable('ticket_status', 0);
 
-        // SEGURIDAD: Verificar si el usuario tiene permiso para ver el tracker (Nuevo permiso m8)
+        // SECURITY: Verify that the user has permission to view the tracker
         if (!$this->auth->acl_get('u_tracker_view'))
         {
             if ($this->user->data['user_id'] == ANONYMOUS)
@@ -84,15 +84,15 @@ class viewproject
             trigger_error('NOT_AUTHORISED');
         }
 
-        $functions = $this->container->get('nextgen.trackers.functions');
+        $functions = $this->container->get('nextgen.trackers.includes.functions');
         
-        // Solo procesamos datos pesados si el tracker está habilitado
+        // We only process heavy data if the tracker is enabled.
         if ($is_enabled)
         {
             $tracker = $functions->get_tracker_data($tracker_id);
             $project = $functions->get_project_data($project_id);
 
-            // Obtener Estados filtrados por Relación con el Proyecto
+            // Get reports filtered by Relationship with the Project
             $sql = 'SELECT s.status_id, s.status_name, s.ticket_new 
                     FROM ' . $this->table_prefix . 'trackers_status s
                     INNER JOIN ' . $this->table_prefix . 'trackers_relations r ON s.status_id = r.item_id
@@ -118,18 +118,24 @@ class viewproject
 
             $total_tickets = $functions->get_total_tickets($tracker, $project_id, $ticket_status);
 
-            // Manejo de paginación
+            // Pagination management
             $pagination = $this->container->get('pagination');
             $tickets_per_page = (isset($this->config['trackers_per_page'])) ? $this->config['trackers_per_page'] : 15;
             $start = $pagination->validate_start($start, $tickets_per_page, $total_tickets);
             
-            $base_url = $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id, 'ticket_status' => (int) $ticket_status]);
+            // RC4 FIX: Changed the base path for pagination to nextgen_trackers_page
+            $base_url = $this->helper->route('nextgen_trackers_page', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id, 'ticket_status' => (int) $ticket_status]);
             $pagination->generate_template_pagination($base_url, 'pagination', 'start', $total_tickets, $tickets_per_page, $start);
 
-            // CARGAR TICKETS
+            $is_moderator = ($this->auth->acl_get('a_trackers') || $this->auth->acl_getf_global('m_'));
+        
+            $can_move = ($is_moderator || $this->auth->acl_get('m_tracker_move'));
+            $can_unassign = ($is_moderator || $this->auth->acl_get('m_tracker_unassign'));
+
+            // LOAD TICKETS
             $functions->get_tickets($tracker, $project_id, $ticket_status, $start, $status_new);
 
-            // Determinar nombre del filtro de estado
+            // Determine the name of the status filter
             switch ($ticket_status)
             {
                 case 0:  $status_name = $this->language->lang('ALL_OPEN'); break;
@@ -141,7 +147,7 @@ class viewproject
                 break;
             }
 
-            // Comprobación de permiso de creación (Sincronizado con m8)
+            // Creation permission check
             $can_post = ($this->auth->acl_get('u_tracker_create') || $this->auth->acl_get('a_') || $functions->is_team_user($project_id));
 
             $this->template->assign_vars([
@@ -151,10 +157,14 @@ class viewproject
                 'STATUS_ID'          => $ticket_status,
                 'STATUS'             => $status_name,
                 'TOTAL_TICKETS'      => $this->language->lang('TOTAL_TICKETS', $total_tickets),
-                'U_ACTION'           => $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
-                'U_POST_NEW_TICKET'  => ($can_post) ? $this->helper->route('nextgen_trackers_controller', ['page' => 'posting', 'mode' => 'post', 't' => (int) $tracker_id, 'p' => (int) $project_id]) : '',
-                'U_VIEWTRACKER'      => $this->helper->route('nextgen_trackers_controller', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
+                // RC4 FIX: Update paths to nextgen_trackers_page
+                'U_ACTION'           => $this->helper->route('nextgen_trackers_page', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
+                'U_POST_NEW_TICKET'  => ($can_post) ? $this->helper->route('nextgen_trackers_page', ['page' => 'posting', 'mode' => 'post', 't' => (int) $tracker_id, 'p' => (int) $project_id]) : '',
+                'U_VIEWTRACKER'      => $this->helper->route('nextgen_trackers_page', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
                 'S_CAN_POST'         => $can_post,
+                'S_CAN_MODERATE'      => $is_moderator,
+                'S_CAN_MOVE'         => $can_move,
+                'S_CAN_UNASSIGN'     => $can_unassign,
                 'S_HIDDEN_FIELDS'    => build_hidden_fields(['t' => (int) $tracker_id, 'p' => (int) $project_id]),
             ]);
 
@@ -162,17 +172,19 @@ class viewproject
             $navlinks = [
                 [
                     'FORUM_NAME'   => $tracker['tracker_name'],
-                    'U_VIEW_FORUM' => $this->helper->route('nextgen_trackers_controller', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
+                    // RC4 FIX: Update paths to nextgen_trackers_page
+                    'U_VIEW_FORUM' => $this->helper->route('nextgen_trackers_page', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
                 ],
                 [
                     'FORUM_NAME'   => $project['project_name'],
-                    'U_VIEW_FORUM' => $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
+                    // RC4 FIX: Update paths to nextgen_trackers_page
+                    'U_VIEW_FORUM' => $this->helper->route('nextgen_trackers_page', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id]),
                 ],
             ];
             $functions->generate_navlinks($navlinks);
         }
 
-        // Siempre pasamos el estado habilitado para el HTML
+        // We always pass the enabled status for HTML.
         $this->template->assign_vars([
             'S_TRACKER_ENABLED'  => $is_enabled,
         ]);

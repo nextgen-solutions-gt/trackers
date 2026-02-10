@@ -3,7 +3,7 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -12,9 +12,6 @@ namespace nextgen\trackers\migrations\v10x;
 
 class m10_many_to_many_relations extends \phpbb\db\migration\migration
 {
-	/**
-	 * Ahora dependemos correctamente de la m9_pro_features_schema
-	 */
 	static public function depends_on()
 	{
 		return ['\nextgen\trackers\migrations\v10x\m9_pro_features_schema'];
@@ -24,7 +21,7 @@ class m10_many_to_many_relations extends \phpbb\db\migration\migration
 	{
 		return [
 			'add_tables' => [
-				// Tabla relacional para asignar estados/severidades a múltiples proyectos
+				// Relational table for assigning statuses/severities to multiple projects
 				$this->table_prefix . 'trackers_relations' => [
 					'COLUMNS' => [
 						'relation_id' => ['UINT', null, 'auto_increment'],
@@ -39,7 +36,7 @@ class m10_many_to_many_relations extends \phpbb\db\migration\migration
 				],
 			],
 			'add_columns' => [
-				// Columna necesaria para la jerarquía de subproyectos
+				// Column required for the subproject hierarchy
 				$this->table_prefix . 'trackers_project' => [
 					'parent_id' => ['UINT', 0],
 				],

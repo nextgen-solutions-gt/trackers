@@ -3,7 +3,7 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -15,109 +15,125 @@ namespace nextgen\trackers\notification\type;
 */
 class ticket_reply extends \phpbb\notification\type\base
 {
-	/** @var \phpbb\controller\helper */
-	protected $helper;
+    /** @var \phpbb\config\config */
+    protected $config;
 
-	/** @var \phpbb\user_loader */
-	protected $user_loader;
+    /** @var \phpbb\controller\helper */
+    protected $helper;
 
-	public function set_user_loader(\phpbb\user_loader $user_loader)
-	{
-		$this->user_loader = $user_loader;
-	}
+    /** @var \phpbb\user_loader */
+    protected $user_loader;
 
-	public function set_controller_helper(\phpbb\controller\helper $helper)
-	{
-		$this->helper = $helper;
-	}
+    /**
+     * Configuration injection for correct operation in the CPU
+     */
+    public function set_config(\phpbb\config\config $config)
+    {
+        $this->config = $config;
+    }
 
-	public function get_type()
-	{
-		return 'nextgen.trackers.notification.type.ticket_reply';
-	}
+    public function set_user_loader(\phpbb\user_loader $user_loader)
+    {
+        $this->user_loader = $user_loader;
+    }
 
-	public static $notification_option = array(
-		'lang'	=> 'NOTIFICATION_TYPE_TRACKERS_REPLY',
-		'group'	=> 'NOTIFICATION_GROUP_TRACKERS',
-	);
+    public function set_helper(\phpbb\controller\helper $helper)
+    {
+        $this->helper = $helper;
+    }
 
-	public function is_available()
-	{
-		return true;
-	}
+    public function get_type()
+    {
+        return 'nextgen.trackers.notification.type.ticket_reply';
+    }
 
-	public function find_users_for_notification($data, $options = array())
-	{
-		$users = array();
-		$poster_id = (int) $data['user_from'];
+    public static $notification_option = array(
+        'lang'    => 'NOTIFICATION_TYPE_TRACKERS_REPLY',
+        'group'    => 'NOTIFICATION_GROUP_TRACKERS',
+    );
 
-		// Notificar al autor del ticket
-		if ((int) $data['ticket_author'] !== $poster_id) {
-			$users[] = (int) $data['ticket_author'];
-		}
+    public function is_available()
+    {
+        // We validate availability using the injected config object.
+        return isset($this->config['trackers_enabled']) && $this->config['trackers_enabled'];
+    }
 
-		// Notificar al asignado
-		if (!empty($data['assigned_user']) && (int) $data['assigned_user'] !== $poster_id) {
-			$users[] = (int) $data['assigned_user'];
-		}
+    public function find_users_for_notification($data, $options = array())
+    {
+        $users = array();
+        $poster_id = (int) $data['user_from'];
 
-		return $this->check_user_notification_options(array_unique($users), $options);
-	}
+        // Notify the ticket author if they are not the one posting the response
+        if ((int) $data['ticket_author'] !== $poster_id) {
+            $users[] = (int) $data['ticket_author'];
+        }
 
-	public function get_title()
-	{
-		$username = $this->user_loader->get_username($this->get_data('user_from'), 'no_profile');
-		return $this->language->lang('NOTIFICATION_TICKET_REPLY', $username, $this->get_data('ticket_title'));
-	}
+        // Notify the assigned user if they are not the one posting the response
+        if (!empty($data['assigned_user']) && (int) $data['assigned_user'] !== $poster_id) {
+            $users[] = (int) $data['assigned_user'];
+        }
 
-	public function get_url()
-	{
-		return $this->helper->route('nextgen_trackers_controller', array(
-			'page'   => 'viewticket',
-			'ticket' => (int) $this->item_id,
-		));
-	}
+        return $this->check_user_notification_options(array_unique($users), $options);
+    }
 
-	/**
-	* MÉTODO REQUERIDO: Define la plantilla de email
-	*/
-	public function get_email_template()
-	{
-		return '@nextgen_trackers/ticket_reply_notification';
-	}
+    public function get_title()
+    {
+        $username = $this->user_loader->get_username($this->get_data('user_from'), 'no_profile');
+        return $this->language->lang('NOTIFICATION_TICKET_REPLY', $username, $this->get_data('ticket_title'));
+    }
 
-	/**
-	* MÉTODO REQUERIDO: Define las variables para el email
-	*/
-	public function get_email_template_variables()
-	{
-		return array(
-			'TICKET_TITLE' => htmlspecialchars_decode($this->get_data('ticket_title')),
-			'U_TICKET'     => $this->get_url(),
-			'AUTHOR_NAME'  => $this->user_loader->get_username($this->get_data('user_from'), 'no_profile'),
-		);
-	}
+    public function get_url()
+    {
+        // FIX: Route migration to nextgen_trackers_ticket to avoid index.php and ensure the ID
+        return $this->helper->route('nextgen_trackers_ticket', array(
+            'page'   => 'viewticket',
+            'ticket' => (int) $this->item_id,
+        ));
+    }
 
-	public function users_to_query()
-	{
-		return array($this->get_data('user_from'));
-	}
+    /**
+    * REQUIRED METHOD: Define the email template
+    */
+    public function get_email_template()
+    {
+        return '@nextgen_trackers/ticket_reply_notification';
+    }
 
-	static public function get_item_id($data)
-	{
-		return (int) $data['ticket_id'];
-	}
+    /**
+    * REQUIRED METHOD: Define the variables for the email
+    */
+    public function get_email_template_variables()
+    {
+        // FIX: Generation of clean absolute URLs for emails
+        $u_ticket = str_replace('./', '', $this->get_url());
 
-	static public function get_item_parent_id($data)
-	{
-		return (int) $data['project_id'];
-	}
+        return array(
+            'TICKET_TITLE' => htmlspecialchars_decode($this->get_data('ticket_title')),
+            'U_TICKET'     => generate_board_url() . '/' . $u_ticket,
+            'AUTHOR_NAME'  => $this->user_loader->get_username($this->get_data('user_from'), 'no_profile'),
+        );
+    }
 
-	public function create_insert_array($data, $pre_create_data = array())
-	{
-		$this->set_data('ticket_title', $data['ticket_title']);
-		$this->set_data('user_from', (int) $data['user_from']);
+    public function users_to_query()
+    {
+        return array($this->get_data('user_from'));
+    }
 
-		parent::create_insert_array($data, $pre_create_data);
-	}
+    static public function get_item_id($data)
+    {
+        return (int) $data['ticket_id'];
+    }
+
+    static public function get_item_parent_id($data)
+    {
+        return (int) $data['project_id'];
+    }
+
+    public function create_insert_array($data, $pre_create_data = array())
+    {
+        $this->set_data('ticket_title', $data['ticket_title']);
+        $this->set_data('user_from', (int) $data['user_from']);
+
+        return parent::create_insert_array($data, $pre_create_data);
+    }
 }

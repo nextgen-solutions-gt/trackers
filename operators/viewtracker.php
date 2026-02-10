@@ -3,7 +3,7 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -54,17 +54,17 @@ class viewtracker
 
     public function display()
     {
-        // 1. Verificación inmediata del estado global
+        // 1. Immediate verification of overall status
         $is_enabled = (isset($this->config['trackers_enabled'])) ? (bool) $this->config['trackers_enabled'] : true;
 
         $tracker_id = $this->request->variable('t', 0);
-        $functions = $this->container->get('nextgen.trackers.functions');
+        $functions = $this->container->get('nextgen.trackers.includes.functions');
         $auth = $this->container->get('auth');
 
-        // Solo ejecutamos la lógica pesada si el tracker está habilitado
+        // We only execute the heavy logic if the tracker is enabled.
         if ($is_enabled)
         {
-            // Verificación de permiso para ver el tracker (Nuevo permiso m8)
+            // Permission check to view the tracker
             if (!$auth->acl_get('u_tracker_view'))
             {
                 if ($this->user->data['user_id'] == ANONYMOUS)
@@ -76,7 +76,7 @@ class viewtracker
 
             $tracker = $functions->get_tracker_data($tracker_id);
 
-            // Verificación de acceso para anónimos basada en la configuración del tracker
+            // Access verification for anonymous users based on tracker configuration
             if (!$tracker['allow_view_all'] && $this->user->data['user_id'] == ANONYMOUS)
             {
                 login_box('', $this->language->lang('LOGIN_REQUIRED'));
@@ -100,13 +100,22 @@ class viewtracker
                     'PROJECT_NAME'  => $project['project_name'],
                     'DESCRIPTION'   => $project['project_description'],
                     'TOTAL_TICKETS' => $total_tickets,
-                    'U_VIEWPROJECT' => $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project['project_id']]),
+                    // RC4 FIX: Changed nextgen_trackers_controller to nextgen_trackers_page
+                    'U_VIEWPROJECT' => $this->helper->route('nextgen_trackers_page', [
+                        'page' => 'viewproject', 
+                        't'    => (int) $tracker_id, 
+                        'p'    => (int) $project['project_id']
+                    ]),
                 ]);
             }
 
             $this->template->assign_vars([
                 'TRACKER_NAME'      => $tracker['tracker_name'],
-                'U_STATISTICS'      => $this->helper->route('nextgen_trackers_controller', ['page' => 'statistics', 't' => (int) $tracker_id]),
+                // RC4 FIX: Changed nextgen_trackers_controller to nextgen_trackers_page
+                'U_STATISTICS'      => $this->helper->route('nextgen_trackers_page', [
+                    'page' => 'statistics', 
+                    't'    => (int) $tracker_id
+                ]),
                 'S_TRACKER_PRIVATE' => !$tracker['allow_view_all'],
             ]);
 
@@ -114,13 +123,17 @@ class viewtracker
             $navlinks = [
                 [
                     'FORUM_NAME'   => $tracker['tracker_name'],
-                    'U_VIEW_FORUM' => $this->helper->route('nextgen_trackers_controller', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
+                    // RC4 FIX: Changed nextgen_trackers_controller to nextgen_trackers_page
+                    'U_VIEW_FORUM' => $this->helper->route('nextgen_trackers_page', [
+                        'page' => 'viewtracker', 
+                        't'    => (int) $tracker_id
+                    ]),
                 ],
             ];
             $functions->generate_navlinks($navlinks);
         }
 
-        // Esta variable siempre se envía para que el HTML sepa qué mostrar
+        // This variable is always sent so that the HTML knows what to display.
         $this->template->assign_vars([
             'S_TRACKER_ENABLED' => $is_enabled,
         ]);

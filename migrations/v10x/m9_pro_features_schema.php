@@ -3,7 +3,7 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -21,7 +21,7 @@ class m9_pro_features_schema extends \phpbb\db\migration\migration
 	{
 		return [
 			'add_tables' => [
-				// Tabla de componentes
+				// Component table
 				$this->table_prefix . 'trackers_component' => [
 					'COLUMNS' => [
 						'component_id'   => ['UINT', null, 'auto_increment'],
@@ -32,7 +32,7 @@ class m9_pro_features_schema extends \phpbb\db\migration\migration
 				],
 			],
 			'add_columns' => [
-				// Columnas para personalización visual
+				// Columns for visual customization
 				$this->table_prefix . 'trackers_status' => [
 					'status_colour'    => ['VCHAR:6', 'CCCCCC'],
 					'ticket_duplicate' => ['BOOL', 0],
@@ -44,7 +44,7 @@ class m9_pro_features_schema extends \phpbb\db\migration\migration
 		];
 	}
 
-	// --- AÑADIDO: Función para pintar los datos existentes ---
+	// --- ADDED: Function to paint existing data ---
 	public function update_data()
 	{
 		return [
@@ -54,7 +54,7 @@ class m9_pro_features_schema extends \phpbb\db\migration\migration
 
 	public function update_existing_colors()
 	{
-		// 1. Pintar Severidades
+		// 1. Painting Severities
 		$sev_colors = [
 			'Severe'           => 'ECD5D8',
 			'High'             => 'FF9999',
@@ -71,23 +71,23 @@ class m9_pro_features_schema extends \phpbb\db\migration\migration
 			$this->db->sql_query($sql);
 		}
 
-		// 2. Pintar Estados (Mapeo completo de tu m2)
+		// 2. Paint States (Complete mapping of your square footage)
 		$status_colors = [
-			// Básicos
-			'New'                  => '4CAF50', // Verde
-			'Pending'              => 'FFC107', // Ambar
-			'Reviewed'             => '2196F3', // Azul
-			'Closed'               => '9E9E9E', // Gris
+			// Basics
+			'New'                  => '4CAF50', // Green
+			'Pending'              => 'FFC107', // Amber
+			'Reviewed'             => '2196F3', // Blue
+			'Closed'               => '9E9E9E', // Gray
 			
-			// Resoluciones
+			// Resolutions
 			'Fixed'                => '009688', // Teal
-			'Duplicate'            => '795548', // Café
-			'Invalid'              => 'F44336', // Rojo
-			'Unreproducible'       => '607D8B', // Gris Azulado
-			'Will not fix'         => '333333', // Gris oscuro
-			'Already fixed'        => '8BC34A', // Verde claro
+			'Duplicate'            => '795548', // Coffee
+			'Invalid'              => 'F44336', // Red
+			'Unreproducible'       => '607D8B', // Blue-gray
+			'Will not fix'         => '333333', // Dark gray
+			'Already fixed'        => '8BC34A', // Light green
 
-			// Intermedios / Desarrollo
+			// Intermediates / Development
 			'Possible bug'            => 'FF9800',
 			'Possible security issue' => 'E91E63',
 			'Awaiting information'    => '9C27B0',

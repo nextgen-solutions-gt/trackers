@@ -3,120 +3,136 @@
 {% if S_TRACKER_ENABLED %}
 {% INCLUDECSS '@nextgen_trackers/common.css' %}
 
-	<h2 class="forum-title">{{ TRACKER_NAME }}</h2>
+    <h2 class="forum-title">{{ TRACKER_NAME }}</h2>
+	<br>
+    <div class="panel rules">
+        <div class="inner">
+            <strong>{{ lang('PROJECT') }}{{ lang('COLON') }}</strong> {{ PROJECT_NAME }} &bull; 
+            <strong>{{ lang('STATUS') }}{{ lang('COLON') }}</strong> {{ STATUS }}
+            {% if PROJECT_DESC %}<br />{{ PROJECT_DESC }}{% endif %}
+        </div>
+    </div>
+	<br>
+    <div class="action-bar bar-top">
+        {% if S_CAN_POST %}
+            <a href="{{ U_POST_NEW_TICKET }}" class="button" title="{{ lang('NEW_TICKET') }}">
+                <span>{{ lang('BUTTON_NEW_TICKET') }}</span> <i class="icon fa-pencil fa-fw" aria-hidden="true"></i>
+            </a>
+        {% endif %}
 
-	<div class="panel bg2">
-		<div class="inner">
-			<strong>{{ lang('PROJECT') }}{{ lang('COLON') }}</strong> {{ PROJECT_NAME }} &bull; 
-			<strong>{{ lang('STATUS') }}{{ lang('COLON') }}</strong> {{ STATUS }}
-			{% if PROJECT_DESC %}<br />{{ PROJECT_DESC }}{% endif %}
-		</div>
-	</div>
+        <div class="search-box" role="search">
+            <form method="get" id="ticket_status_form" action="{{ U_ACTION }}">
+                <fieldset>
+                    <select name="ticket_status" id="ticket_status" onchange="document.getElementById('ticket_status_form').submit();">
+                        <option value="0"{% if STATUS_ID == 0 %} selected="selected"{% endif %}>{{ lang('ALL_OPEN') }}</option>
+                        <option value="-1"{% if STATUS_ID == -1 %} selected="selected"{% endif %}>{{ lang('ALL_TICKETS') }}</option>
+                        <option value="-2"{% if STATUS_ID == -2 %} selected="selected"{% endif %}>{{ lang('ALL_CLOSED') }}</option>
+                        <optgroup label="──────────">
+                            {% for status_opt in status_ary %}
+                                <option value="{{ status_opt.ID }}"{% if status_opt.ID == STATUS_ID %} selected="selected"{% endif %}>{{ status_opt.NAME }}</option>
+                            {% endfor %}
+                        </optgroup>
+                    </select>
+                    {{ S_HIDDEN_FIELDS }}
+                </fieldset>
+            </form>
+        </div>
 
-	<div class="action-bar bar-top">
-		{% if S_CAN_POST %}
-			<a href="{{ U_POST_NEW_TICKET }}" class="button" title="{{ lang('NEW_TICKET') }}">
-				<span>{{ lang('BUTTON_NEW_TICKET') }}</span> <i class="icon fa-pencil fa-fw" aria-hidden="true"></i>
-			</a>
-		{% endif %}
+        <div class="pagination">
+            {{ TOTAL_TICKETS }}
+            {% if pagination|length %}
+                {% include 'pagination.html' %}
+            {% else %}
+                &bull; {{ PAGE_NUMBER }}
+            {% endif %}
+        </div>
+    </div>
+	<br>
+    <div class="forabg">
+        <div class="inner">
+            <table class="table1" id="trackers_table">
+                <thead>
+                    <tr>
+                        <th class="name" style="width: 45%;">{{ lang('TITLE') }}</th>
+                        <th class="center" style="width: 15%;">{{ lang('COMPONENT') }}</th>
+                        <th class="center" style="width: 20%;">{{ lang('ASSIGNED') }}</th>
+                        <th class="center" style="width: 20%;">{{ lang('STATUS') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for ticket in tickets %}
+                    <tr class="{% if ticket.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}{% if ticket.S_PRIVATE %} reported{% endif %}">
+                        <td class="name">
+                            <div class="list-inner">
+							
+								 {% if S_CAN_MODERATE and ticket.S_IS_REPORTED %} 
+									<i class="icon fa-exclamation-triangle fa-fw icon-red" aria-hidden="true" title="{{ lang('REPORTED') }}"></i>
+								{% endif %}				
+                                {% if ticket.S_PRIVATE %}
+                                    <i class="icon fa-lock fa-fw icon-red" aria-hidden="true" title="{{ lang('PRIVATE') }}"></i>
+                                {% endif %}
+                                <a href="{{ ticket.U_VIEWTICKET }}" class="topictitle">{{ ticket.TITLE }}</a>
 
-		<div class="search-box" role="search">
-			<form method="get" id="ticket_status_form" action="{{ U_ACTION }}">
-				<fieldset>
-					<select name="ticket_status" id="ticket_status" onchange="document.getElementById('ticket_status_form').submit();">
-						<option value="0"{% if STATUS_ID == 0 %} selected="selected"{% endif %}>{{ lang('ALL_OPEN') }}</option>
-						<option value="-1"{% if STATUS_ID == -1 %} selected="selected"{% endif %}>{{ lang('ALL_TICKETS') }}</option>
-						<option value="-2"{% if STATUS_ID == -2 %} selected="selected"{% endif %}>{{ lang('ALL_CLOSED') }}</option>
-						<optgroup label="──────────">
-							{% for status_opt in status_ary %}
-								<option value="{{ status_opt.ID }}"{% if status_opt.ID == STATUS_ID %} selected="selected"{% endif %}>{{ status_opt.NAME }}</option>
-							{% endfor %}
-						</optgroup>
-					</select>
-					{{ S_HIDDEN_FIELDS }}
-				</fieldset>
-			</form>
-		</div>
+                                {% if S_CAN_MODERATE %}
+                                <div class="responsive-show" style="display: inline-block; float: right;">
+                                    <a href="{{ ticket.U_MOVE }}" title="{{ lang('MOVE') }}"><i class="icon fa-arrows fa-fw" aria-hidden="true"></i></a>
+                                    
+                                    {# Solo mostrar si el ticket está asignado #}
+                                    {% if ticket.IS_ASSIGNED %}
+                                        <a href="{{ ticket.U_UNASSIGN }}" title="{{ lang('UNASSIGN') }}"><i class="icon fa-user-times fa-fw" aria-hidden="true"></i></a>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
 
-		<div class="pagination">
-			{{ TOTAL_TICKETS }}
-			{% if pagination|length %}
-				{% include 'pagination.html' %}
-			{% else %}
-				&bull; {{ PAGE_NUMBER }}
-			{% endif %}
-		</div>
-	</div>
+                                {% if ticket.S_NEW %}
+                                    <i class="icon fa-file-o fa-fw icon-red" aria-hidden="true" title="{{ lang('NEW') }}"></i>
+                                {% endif %}
+                                <br />
+                                <span class="small">
+                                    #{{ ticket.ID }} &raquo; {{ lang('POSTED_BY') }} {{ ticket.REPORTER }} &raquo; {{ ticket.TIMESTAMP }}
+                                </span>
+                            </div>
+                        </td>
+                        <td class="center">
+                            <span class="small">{% if ticket.COMPONENT %}{{ ticket.COMPONENT }}{% else %}{{ lang('UNKNOWN') }}{% endif %}</span>
+                        </td>
+                        <td class="center">
+                            <span class="small">{% if ticket.ASSIGNED %}<strong>{{ ticket.ASSIGNED }}</strong>{% else %}{{ lang('UNASSIGNED') }}{% endif %}</span>
+                        </td>
+                        <td class="center">
+                            <span class="badge-phpbb" style="background-color: #{{ ticket.STATUS_COLOUR }};">
+                                {{ ticket.STATUS }}
+                            </span>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr class="bg1">
+                        <td colspan="4" class="center" style="padding: 20px;">{{ lang('NO_TICKETS') }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-	<div class="forabg">
-		<div class="inner">
-			<table class="table1" id="trackers_table">
-				<thead>
-					<tr>
-						<th class="name" style="width: 45%;">{{ lang('TITLE') }}</th>
-						<th class="center" style="width: 15%;">{{ lang('COMPONENT') }}</th>
-						<th class="center" style="width: 20%;">{{ lang('ASSIGNED') }}</th>
-						<th class="center" style="width: 20%;">{{ lang('STATUS') }}</th>
-					</tr>
-				</thead>
-				<tbody>
-				{% for ticket in tickets %}
-					<tr class="{% if ticket.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}{% if ticket.S_PRIVATE %} reported{% endif %}">
-						<td class="name">
-							<div class="list-inner">
-								{% if ticket.S_PRIVATE %}
-									<i class="icon fa-lock fa-fw icon-red" aria-hidden="true" title="{{ lang('PRIVATE') }}"></i>
-								{% endif %}
-								<a href="{{ ticket.U_VIEWTICKET }}" class="topictitle">{{ ticket.TITLE }}</a>
-								{% if ticket.S_NEW %}
-									<i class="icon fa-file-o fa-fw icon-red" aria-hidden="true" title="{{ lang('NEW') }}"></i>
-								{% endif %}
-								<br />
-								<span class="small">
-									#{{ ticket.ID }} &raquo; {{ lang('POSTED_BY') }} {{ ticket.REPORTER }} &raquo; {{ ticket.TIMESTAMP }}
-								</span>
-							</div>
-						</td>
-						<td class="center">
-							<span class="small">{% if ticket.COMPONENT %}{{ ticket.COMPONENT }}{% else %}{{ lang('UNKNOWN') }}{% endif %}</span>
-						</td>
-						<td class="center">
-							<span class="small">{% if ticket.ASSIGNED %}<strong>{{ ticket.ASSIGNED }}</strong>{% else %}{{ lang('UNASSIGNED') }}{% endif %}</span>
-						</td>
-						<td class="center">
-							<span class="badge-phpbb" style="background-color: #{{ ticket.STATUS_COLOUR }};">
-								{{ ticket.STATUS }}
-							</span>
-						</td>
-					</tr>
-				{% else %}
-					<tr class="bg1">
-						<td colspan="4" class="center" style="padding: 20px;">{{ lang('NO_TICKETS') }}</td>
-					</tr>
-				{% endfor %}
-				</tbody>
-			</table>
-		</div>
-	</div>
+    <div class="action-bar bar-bottom">
+        <div class="buttons">
+            <a href="{{ U_VIEWTRACKER }}" class="button" title="{{ lang('TRACKERS') }}">
+                <i class="icon fa-chevron-left fa-fw" aria-hidden="true"></i> <span>{{ lang('TRACKERS') }}</span>
+            </a>
+        </div>
 
-	<div class="action-bar bar-bottom">
-		<div class="buttons">
-			<a href="{{ U_VIEWTRACKER }}" class="button" title="{{ lang('TRACKERS') }}">
-				<i class="icon fa-chevron-left fa-fw" aria-hidden="true"></i> <span>{{ lang('TRACKERS') }}</span>
-			</a>
-		</div>
-
-		<div class="pagination">
-			{% if pagination|length %}
-				{% include 'pagination.html' %}
-			{% endif %}
-		</div>
-	</div>
+        <div class="pagination">
+            {% if pagination|length %}
+                {% include 'pagination.html' %}
+            {% endif %}
+        </div>
+    </div>
 
 {% else %}
-	<div class="rules">
-		<div class="inner">{{ lang('TRACKER_DISABLED') }}</div>
-	</div>
+    <div class="rules">
+        <div class="inner">{{ lang('TRACKER_DISABLED') }}</div>
+    </div>
 {% endif %}
-
+<br>
 {% include 'overall_footer.html' %}

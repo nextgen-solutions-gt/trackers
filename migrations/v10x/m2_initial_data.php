@@ -3,7 +3,7 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -20,14 +20,14 @@ class m2_initial_data extends \phpbb\db\migration\migration
     public function update_data()
     {
         return [
-            // Solo insertamos los datos de las tablas
+            // We only insert data from the tables
             ['custom', [[$this, 'insert_data']]],
         ];
     }
 
     public function insert_data()
     {
-        // 1. Severidades
+        // 1. Severities
         $severity_data = [
             ['severity_name' => 'Severe',            'severity_order' => 1],
             ['severity_name' => 'High',              'severity_order' => 2],
@@ -36,7 +36,7 @@ class m2_initial_data extends \phpbb\db\migration\migration
             ['severity_name' => 'Possibly invalid',  'severity_order' => 5],
         ];
 
-        // 2. Estados
+        // 2. States
         $status_data = [
             ['status_name' => 'New',                   'ticket_new' => 1, 'ticket_closed' => 0, 'status_order' => 1],
             ['status_name' => 'Pending',               'ticket_new' => 0, 'ticket_closed' => 0, 'status_order' => 2],
@@ -66,7 +66,7 @@ class m2_initial_data extends \phpbb\db\migration\migration
             ['status_name' => 'Not a bug',             'ticket_new' => 0, 'ticket_closed' => 1, 'status_order' => 29],
         ];
 
-        // 3. Tipos de Tracker
+        // 3. Tracker types
         $tracker_data = [
             ['tracker_name' => 'Incident tracker', 'allow_view_all' => 0],
             ['tracker_name' => 'Security tracker', 'allow_view_all' => 0],

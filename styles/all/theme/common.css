@@ -4,14 +4,14 @@
     font-family: Verdana, Helvetica, Arial, sans-serif;
     position: relative;
     overflow: hidden;
-    float: left; /* Añadido para soporte de columnas */
-    width: calc(100% - 300px); /* Ajuste dinámico para dejar espacio a .extras */
+    float: left; /* Added for column support */
+    width: calc(100% - 300px); /* Dynamic adjustment to make room for .extras */
 }
 
 .main h3 {
     text-transform: none;
     border-bottom: none;
-    font-size: 1.2em;
+    font-size: 1.5em;
 }
 
 .main h3 span {
@@ -31,9 +31,6 @@
 }
 
 .mini-panel {
-    background-color: #ebebeb;
-    -moz-border-radius: 7px;
-    -webkit-border-radius: 7px;
     border-radius: 7px;
     margin-bottom: 5px;
     padding: 5px 10px;
@@ -61,7 +58,7 @@
     border-bottom: none;
 }
 
-/* Tablas y Errores */
+/* Tables and Errors */
 tr.error {
     height: 50px;
 }
@@ -74,19 +71,7 @@ td.error {
     text-decoration: line-through;
 }
 
-/* Historial y Comentarios */
-.history {
-    background-color: #FBFBFB;
-    border-left: 3px solid #E2E2E2; /* Marca visual de historial */
-    margin-bottom: 2px !important;
-}
-
-.history-text {
-    color: #555555;
-    font-size: 0.95em;
-}
-
-/* Privacidad y Etiquetas */
+/* Privacy and Tags */
 span.post_private {
     color: #FF0000;
     font-weight: bold;
@@ -106,7 +91,7 @@ span.post_private {
     margin-left: 5px;
 }
 
-/* Elementos de detalle */
+/* Detailed elements */
 .small {
     font-size: 9px;
 }
@@ -116,12 +101,12 @@ span.post_private {
     margin-bottom: 9px;
 }
 
-/* Fix para limpiar floats */
+/* Fix to clean floats */
 .action-bar.bar-bottom {
     clear: both;
 }
 
-/* Responsividad básica para tablets/móviles */
+/* Basic responsiveness for tablets/mobile devices */
 @media (max-width: 950px) {
     .main, .extras {
         float: none !important;
@@ -133,13 +118,13 @@ span.post_private {
 .icon-red { color: #d32f2f; }
 .ticket-private { background-color: #fff5f5 !important; }
 
-/* Nueva clase para severidades sin interferir con .badge */
+/* New class for severities without interfering with .badge */
 .severity-pill {
     display: inline-block;
     margin-top: 5px;
     padding: 2px 8px;
-    background-color: #f9f9f9; /* Fondo neutro claro */
-    border: 1px solid #e0e0e0; /* Borde sutil para definir la forma */
+    background-color: #f9f9f9; /* Light neutral background */
+    border: 1px solid #e0e0e0; /* Subtle border to define the shape */
     border-radius: 3px;
     font-size: 0.75em;
     font-weight: bold;
@@ -152,13 +137,13 @@ span.post_private {
     margin-right: 2px;
 }
 
-/* Asegura que los contenedores de adjuntos no se desborden */
+/* Ensure that attachment containers do not overflow */
 .inline-attachment, .attachbox {
     max-width: 100%;
     overflow: hidden;
 }
 
-/* Redimensión automática de imágenes adjuntas */
+/* Automatic resizing of attached images */
 .postimage {
     max-width: 100%;
     height: auto;
@@ -166,13 +151,13 @@ span.post_private {
     margin-top: 5px;
 }
 
-/* Ajuste específico para que el contenedor dl no fuerce anchos fijos */
+/* Specific adjustment so that the dl container does not enforce fixed widths */
 dl.file {
     max-width: 100%;
     display: inline-block;
 }
 
-/* Badge de estado minimalista (estilo phpBB) */
+/* Minimalist status badge (phpBB style) */
 .badge-phpbb {
 	display: inline-block;
 	padding: 2px 6px;
@@ -186,18 +171,18 @@ dl.file {
 	line-height: 1.2;
 }
 
-/* Ajustes para Ticket Privado (usando color de reporte de phpBB) */
+/* Settings for Private Ticket (using phpBB report color) */
 tr.reported {
 	background-color: #f7ecef !important;
 }
 
-/* Responsividad mínima para evitar desbordamientos */
+/* Minimum responsiveness to prevent overflows */
 @media (max-width: 700px) {
 	#trackers_table th:nth-child(2), 
 	#trackers_table td:nth-child(2),
 	#trackers_table th:nth-child(3), 
 	#trackers_table td:nth-child(3) {
-		display: none; /* Ocultamos Componente y Asignado en móviles muy pequeños */
+		display: none; /* We hide Component and Assigned on very small mobile devices */
 	}
 	
 	#trackers_table th, #trackers_table td {
@@ -209,9 +194,9 @@ tr.reported {
 	}
 }
 .tracker-search-box {
-    display: inline-block; /* Evita que ocupe todo el ancho */
-    width: 100%; /* Permite que el contenedor padre maneje el ancho en móviles */
-    max-width: 300px; /* Ancho máximo para que no se vea gigante */
+    display: inline-block; /* Prevents it from taking up the entire width */
+    width: 100%; /* Allow the parent container to handle width on mobile devices */
+    max-width: 300px; /* Maximum width so it doesn't look huge */
 }
 
 .tracker-search-box fieldset {
@@ -230,7 +215,7 @@ tr.reported {
 .tracker-search-box .inputbox {
     border: none !important;
     padding: 5px 10px !important;
-    flex: 1 1 auto !important; /* El input se ajusta al espacio restante */
+    flex: 1 1 auto !important; /* The input fits the remaining space */
     min-width: 0 !important; 
     box-shadow: none !important;
     margin: 0 !important;
@@ -239,10 +224,10 @@ tr.reported {
 
 .tracker-search-box-buttons {
     display: flex;
-    flex: 0 0 auto; /* Los botones mantienen su ancho fijo */
+    flex: 0 0 auto; /* Buttons maintain their fixed width */
 }
 
-/* Alineación de los botones internos */
+/* Alignment of internal buttons */
 .tracker-search-box .tracker-button-assign, 
 .tracker-search-box .tracker-button-search {
     margin: 0 !important;
@@ -251,7 +236,7 @@ tr.reported {
     border-radius: 0 !important;
     background: #f1f1f1 !important;
     height: 30px !important;
-    width: 32px !important; /* Ancho fijo para alineación perfecta */
+    width: 32px !important; /* Fixed width for perfect alignment */
     display: flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -265,37 +250,168 @@ tr.reported {
     background: #e5e5e5 !important;
 }
 
-/* Iconos dentro de los botones */
+/* Icons inside buttons */
 .tracker-search-box .icon {
     margin: 0 !important;
     padding: 0 !important;
 }
 
-/* --- Badges de Estado Automáticos --- */
-/* Estilo base para todos los estados */
-.badge-status {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 3px;
-    font-size: 10px;
-    font-weight: bold;
-    text-transform: uppercase;
-    color: #fff !important;
-}
-
-/* Colores lógicos según el texto del estado */
-/* phpBB Twig detectará estas clases si el nombre coincide */
-.status-abierto, .status-open { background-color: #28a745; }   /* Verde */
-.status-cerrado, .status-closed { background-color: #6c757d; } /* Gris */
-.status-progreso, .status-progress { background-color: #007bff; } /* Azul */
-.status-espera, .status-pending { background-color: #ffc107; color: #333 !important; } /* Amarillo */
-.status-rechazado, .status-rejected { background-color: #dc3545; } /* Rojo */
-
 .stats-button {
-	background-color: #f1f8ff; /* Un tono azulado muy suave */
+	background-color: #f1f8ff; /* A very soft bluish tone */
 	border-color: #c8e1ff;
 }
 
 .stats-button i {
 	color: inherit;
+}
+
+.ticket-header {
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin: 10px 0;
+    line-height: 1.4;
+}
+
+/* Specific color for the Title Text */
+.ticket-title {
+    color: #bc2a4d;
+    font-weight: bold;
+}
+
+/* Specific color for the state in parentheses */
+.ticket-status {
+    color: #000; 
+    font-weight: normal;
+}
+
+/* Optional: Style when the ticket is closed */
+.ticket-closed .ticket-status {
+    color: #666666; /* Gray if you prefer it to be dimmed when closed */
+}
+
+.qr-history-title {
+    font-size: 1.3em;
+    margin-bottom: 15px;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #E6E9ED; /* Optional: a subtle line to separate sections */
+    color:  #bc2a4d;
+}
+
+/* Adjustment for mobile devices */
+@media (max-width: 500px) {
+    .qr-history-title {
+        font-size: 1.15em;
+        margin-bottom: 10px;
+    }
+}
+/* Main history container */
+.history-box {
+    background-color: #f4f6f8;
+    border-radius: 8px;
+    padding: 12px 18px;
+    margin-bottom: 10px;
+    border: 1px solid #e1e4e8;
+}
+
+/* Icon and text for the main action */
+.history-icon {
+    color: #6a737d;
+}
+
+.history-action {
+    font-weight: bold;
+    color: #24292e;
+    font-size: 1em;
+}
+
+/* Details of who and when */
+.history-details {
+    margin-top: 6px;
+    font-size: 1em;
+    color: #586069;
+}
+
+.history-details .username {
+    color: #bc2a4d;
+    font-weight: bold;
+}
+/* General Layout */
+.qr-main-layout {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+/* --- Design for Desktop and Tablets --- */
+.qr-main-layout {
+    display: flex;
+    gap: 15px;
+    align-items: stretch;
+    margin-bottom: 15px;
+}
+
+.qr-textarea-box {
+    flex: 1;
+    min-width: 0;
+}
+
+/* Force the total width for the ticket editor */
+.qr-textarea-box .inputbox {
+    width: 100% !important; /* Overwrites phpBB's max-width: 260px */
+    max-width: none !important; /* Remove any previous width limits */
+    min-height: 180px;
+    box-sizing: border-box;
+    display: block;
+}
+
+.qr-smilies-sidebar {
+    width: 200px;
+    padding: 0 0 0 20px;
+    border: 1px dashed #B4BAC0;
+    background-color: #F9F9F9;
+    border-radius: 4px;
+	line-height: 2rem;
+}
+
+/* --- RESPONSIVE RULES --- */
+
+/* Breakpoint at 900px to avoid compression */
+@media (max-width: 900px) {
+    .qr-main-layout {
+        flex-direction: column;
+    }
+
+    .qr-smilies-sidebar {
+        width: 100% !important;
+        max-width: none !important;
+        box-sizing: border-box;
+    }
+}
+
+/* Specific for mobile devices where phpBB applies the 260px limit */
+@media (max-width: 500px) {
+    .qr-textarea-box .inputbox {
+        width: 100% !important;
+        max-width: 100% !important; /* Ensures that it occupies the entire width of the phone */
+        min-height: 140px;
+    }
+}
+
+/* Icon style: Larger and aligned */
+.tracker-icon {
+	margin-right: 5px;
+    font-size: 20px;       /* We increased the size (previously it was approx. 14-16px) */
+    vertical-align: middle; /* Perfect vertical alignment with text */
+}
+
+
+/* Subtle description */
+.tracker-desc {
+    margin-left: 1.9rem; /* Indentation so that it is aligned with the title text, not the icon */
+    display: block;    /* Ensures that the line break is correct */
+    font-size: 0.9em;
+}
+
+dl.row-item dt .list-inner {
+    padding-left: 10px !important;
 }

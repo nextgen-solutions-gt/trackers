@@ -5,13 +5,13 @@
 
 	<h2 class="forum-title">{{ TRACKER_NAME }}</h2>
 
-	<div class="panel bg2">
+	<div class="panel rules">
 		<div class="inner">
 			<strong>{{ lang('TRACKER_NAME') }}{{ lang('COLON') }}</strong> {{ TRACKER_NAME }}
 			{% if TRACKER_DESC %}<br />{{ TRACKER_DESC }}{% endif %}
 		</div>
 	</div>
-
+	<br>
 	<div class="action-bar bar-top">
 
 		<div class="buttons">
@@ -24,7 +24,7 @@
 			&bull; {{ projects|length }} {{ lang('PROJECTS') }}
 		</div>
 	</div>
-
+	<br>
 	<div class="forabg">
 		<div class="inner">
 			<table class="table1" id="trackers_table">
@@ -79,5 +79,6 @@
 		<div class="inner">{{ lang('TRACKER_DISABLED') }}</div>
 	</div>
 {% endif %}
+<br>
 
 {% include 'overall_footer.html' %}

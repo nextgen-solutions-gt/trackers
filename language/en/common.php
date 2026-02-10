@@ -3,7 +3,7 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -19,15 +19,18 @@ if (empty($lang) || !is_array($lang))
 }
 
 $lang = array_merge($lang, [
-	// Version Check
-	'TRACKERS_UP_TO_DATE'       => 'Your version of Trackers is up to date, no new updates are available.',
-	'NEW_VERSION_AVAILABLE'     => 'A new version is available',
-	'CURRENT_VERSION'           => 'Current version',
-	'LATEST_VERSION'            => 'Latest version',
-	'DOWNLOAD_LATEST'           => 'Download latest version',
+    'TRACKERS_COPYRIGHT'        => 'Powered by phpBB Trackers',
+    'TRACKERS_COPYRIGHT_LINK'   => 'https://nextgen.gt',
+
+    // Version Check
+    'TRACKERS_UP_TO_DATE'       => 'Your version of Trackers is up to date, no new updates are available.',
+    'NEW_VERSION_AVAILABLE'     => 'A new version is available',
+    'CURRENT_VERSION'           => 'Current version',
+    'LATEST_VERSION'            => 'Latest version',
+    'DOWNLOAD_LATEST'           => 'Download latest version',
 
     // ACP entries
-	'ACP_TRACKERS_DASHBOARD' 	 => 'Dashboard',
+    'ACP_TRACKERS_DASHBOARD'     => 'Dashboard',
     'ACP_TRACKERS'               => 'Trackers',
     'ACP_TRACKERS_TITLE'         => 'Tracker Management',
     'ACP_TRACKERS_SETTINGS'      => 'General Settings',
@@ -163,6 +166,41 @@ $lang = array_merge($lang, [
     'TICKET_CLOSED_SUCCESS'  => 'The ticket has been closed successfully.',
     'CLOSED'                  => 'Closed',
 
+	// --- Ticket Moderation & Tools ---
+    'TICKET_TOOLS'               => 'Ticket tools',
+    'MOVE'                       => 'Move',
+    'MOVE_TICKET'                => 'Move ticket',
+    'MOVE_TICKET_CONFIRM'        => 'Are you sure you want to move this ticket?',
+    'SELECT_DESTINATION_PROJECT' => 'Select destination project',
+    'UNASSIGN'                   => 'Unassign',
+    'UNASSIGN_TICKET'            => 'Unassign current responsible',
+    'CONFIRM_UNASSIGN_TICKET'    => 'Are you sure you want to unassign the current user from this ticket?',
+    'CLOSE_TICKET'               => 'Close ticket',
+    'REOPEN_TICKET'              => 'Reopen ticket',
+
+    // --- Success Messages ---
+    'TICKET_UNASSIGNED'          => 'The user has been successfully unassigned from the ticket.',
+    'TICKET_MOVED'               => 'The ticket has been successfully moved to the new project.',
+    'TICKET_CLOSED'              => 'The ticket has been successfully closed.',
+    'TICKET_REOPENED'            => 'The ticket has been successfully reopened.',
+    'TICKET_WATCH_UPDATED'       => 'Your subscription settings have been updated.',
+
+    // --- Audit Log & History ---
+    'LOG_TICKET_MOVED'           => '<strong>Ticket moved:</strong> from %1$s to %2$s',
+    'LOG_TICKET_UNASSIGNED'      => '<strong>Moderation:</strong> Ticket was unassigned by a moderator.',
+    'LOG_TICKET_CLOSED'          => '<strong>Moderation:</strong> Ticket was closed.',
+    'LOG_TICKET_REOPENED'        => '<strong>Moderation:</strong> Ticket was reopened.',
+
+    // --- Statistics & Errors ---
+    'STATISTICS_TRACKER_EXPLAIN' => 'Detailed overview of tickets and project activity within the tracker.',
+    'NO_TICKET_SELECTED'         => 'No ticket was selected.',
+    'NO_CLOSED_STATUS_FOUND'     => 'Error: No "Closed" status found for this tracker.',
+    'NO_OPEN_STATUS_FOUND'       => 'Error: No "Open" status found to reopen this ticket.',
+	
+	
+    'NO_PARENT'                 => 'No parent',
+    'PARENT_PROJECT'            => 'Parent project',
+
     // History Logs
     'TICKET_ASSIGNED_TO' => 'Ticket assigned to: %s',
     'CHANGED_STATUS'     => 'Changed ticket status from "%1$s" to "%2$s"',
@@ -191,13 +229,13 @@ $lang = array_merge($lang, [
         2    => '%d posts',
     ],
 
-	// Dashboard Sync
+    // Dashboard Sync
     'TRACKERS_SYNC_COMPLETE'    => 'Ticket counters and projects have been successfully resynchronized.',
     'TICKET_SYNC'               => 'Ticket Synchronization',
     'TICKET_SYNC_EXPLAIN'       => 'This process recalculates the ticket counters for each project to ensure data integrity.',
     'RESYNC_TICKETS'            => 'Resynchronize now',
 
-    // Dashboard Statistics Labels (Estáticas para evitar el error de plurales)
+    // Dashboard Statistics Labels
     'TOTAL_TICKETS_LBL'         => 'Total Tickets',
     'UNANSWERED_TICKETS_LBL'    => 'Unanswered Tickets',
     'CLOSED_TICKETS_LBL'        => 'Closed Tickets',
@@ -209,9 +247,112 @@ $lang = array_merge($lang, [
     'NOTIFICATION_TYPE_TRACKERS_REPLY'      => 'A reply is posted in a ticket you are involved in',
     'NOTIFICATION_TICKET_REPLY'             => '%1$s replied to the ticket: <strong>%2$s</strong>',
 
-	'CHANGELOG_GITHUB' => 'GitHub Activity & Updates',
-	'CHANGELOG_ERROR' => 'Could not connect to GitHub or file not found.',
-	'CHANGELOG_ERROR'   => 'Error: CHANGELOG.md file not found.',
+    'CHANGELOG_GITHUB' => 'GitHub Activity & Updates',
+    'CHANGELOG_ERROR'  => 'Error: CHANGELOG.md file not found.',
     'CHANGELOG_WAITING' => 'Waiting for remote synchronization with the GitHub repository...',
-	'VIEW_ON_GITHUB' => 'Ver en GitHub',
+    'VIEW_ON_GITHUB' => 'View on GitHub',
+	
+	'ACL_M_TRACKER_REPORT'	=> 'Can manage reported tickets',
+	
+	'NOTIFICATION_TICKET_REPORTED' => 'User %1$s has reported the ticket: %2$s',
+    'NOTIFICATION_TYPE_TRACKERS_REPORT' => 'Someone reports a ticket',
+	
+	// Module titles (Used in the sidebar and tabs)
+	'MCP_TRACKERS'              => 'Trackers',
+	'MCP_TRACKERS_REPORT_LIST'  => 'Reported Tickets',
+	
+	// Page headers
+	'MCP_TRACKERS_TITLE'        => 'Tracker Moderation Panel',
+	
+	// Watch & Notifications
+	'WATCH_TICKET'           => 'Watch ticket',
+	'STOP_WATCHING_TICKET'    => 'Stop watching ticket',
+	'UNWATCH_TICKET'         => 'Unwatch ticket',
+	'NOTIFICATION_TICKET_UPDATE' => 'Tracker Update: %s',
+	'TICKET_WATCH_UPDATED'   => 'Your subscription status has been updated.',
+
+	// Quote & Reply
+	'QUOTE'                  => 'Quote',
+	'QUICK_REPLY'            => 'Quick Reply',
+	'REPLY_TICKET'           => 'Reply to this ticket',
+	// Email Notifications
+	'NOTIFICATION_TICKET_UPDATE_EMAIL_SUBJECT' => 'Ticket Update - %s',
+	'NOTIFICATION_TICKET_UPDATE_EMAIL_BODY'    => "Hello,\n\nYou are receiving this notification because you are watching the ticket \"%1\$s\" on %2\$s. This ticket has received a new update or comment.\n\nYou can view the ticket by clicking on the following link:\n%3\$s\n\nIf you no longer wish to watch this ticket, please click the \"Stop watching ticket\" link located within the ticket itself.",
+
+	// Permissions
+    'ACL_U_TRACKER_WATCH'         	=> 'Can watch tickets',
+    'ACL_U_TRACKER_WATCH_EXPLAIN' 	=> 'Allows the user to subscribe to tickets and receive notifications for updates.',
+
+	// --- RC4: Watch System & UCP ---
+    'UCP_TRACKERS_WATCH'      		=> 'Trackers',
+    'UCP_TRACKERS_WATCH_LIST' 		=> 'Manage watched tickets',
+    'UCP_TRACKERS_WATCH_EXPLAIN'    => 'Below is a list of all tickets you are currently subscribed to. You will receive notifications for any new comments or status changes on these tickets.',
+    'NO_WATCHED_TICKETS'            => 'You are not watching any tickets at the moment.',
+    'TICKET_WATCH_UPDATED'          => 'The selected ticket subscriptions have been updated.',
+    'STOP_WATCHING_TICKET'          => 'Stop watching',
+    'WATCH_TICKET'                  => 'Watch ticket',
+    'UNWATCH_TICKET'                => 'Unwatch ticket',
+    
+    // Notifications toggle (UCP Settings)
+    'NOTIFICATION_TYPE_NEXTGEN_TRACKERS_TICKET_UPDATE' => 'A ticket you are watching is updated',
+    
+    // Board/Email Notification text
+    'NOTIFICATION_TICKET_UPDATE'    => 'Ticket update: %s',
+    
+    // UI Elements for UCP Table
+    'TICKET_TITLE'                  => 'Ticket Title',
+    'MARK_ALL'                      => 'Mark all',
+    'UNMARK_ALL'                    => 'Unmark all',
+	
+	'NO_TICKET'				=> 'No tickets found',
+	'TRACKER_TYPES'			=> 'Tracker Types',
+	'PROJECTS_MANAGEMENT'	=> 'Projects Management',
+	'TRACKER_ICON'			=> 'Tracker Icon',
+	'TRACKER_ICON_EXPLAIN'	=> 'Enter the icon class (e.g., <code>fa-music</code>). Check the official website to see all <a href="https://fontawesome.com/v4/icons/" target="_blank">Available icons</a>.<br /><br /><b>Common examples:</b><br />• <code>fa-globe</code> (Web/General)<br />• <code>fa-shopping-cart</code> (Store)<br />• <code>fa-facebook</code> (Facebook)<br />• <code>fa-whatsapp</code> (WhatsApp)',
+	'TRACKER_COLOR'			=> 'Tracker Color',
+	'TRACKER_UPDATED'		=> 'Tracker updated successfully',
+	'ADD_TRACKER' 			=> 'Add new tracker type',
+	'PARENT_TRACKER' 		=> 'Parent Tracker',
+	
+	'DELETE_TRACKER'            => 'Delete Tracker Type',
+	'TRACKER_ADDED'           	=> 'Tracker added',
+	'TRACKER_DELETED'           => 'Tracker deleted',
+	'TRACKER_DETAILS'			=> 'Tracker details',
+    'DELETE_TRACKER_EXPLAIN'    => 'If this tracker has associated projects, you must decide what to do with them.',
+    'DELETE_ALL_PROJECTS'       => 'Delete all associated projects',
+    'MOVE_PROJECTS_TO'          => 'Move projects to',
+    'ACTION'                    => 'Action',
+    'LOCKED'                    => 'Locked',
+    'DESCRIPTION'               => 'Description',
+    'TRACKER'                   => 'Tracker',
+	
+	// My Tickets & Global Links
+	'MY_TICKETS'			=> 'My tickets',
+	'NO_TICKETS_FOUND'		=> 'You have not created any tickets yet.',
+	'TOTAL_TICKETS'			=> '%d tickets',
+	'TICKET_TITLE'			=> 'Ticket title',
+	'VIEW_MY_TICKETS'		=> 'View your reported tickets',
+
+	// Status & Logic Indicators (for future use in RC5/RC6)
+	'STATUS'				=> 'Status',
+	'STATUS_NEW'			=> 'New ticket',
+	'STATUS_CLOSED'			=> 'Closed',
+	'STATUS_RESOLVED'		=> 'Resolved',
+	'STATUS_REVIEWED'		=> 'Reviewed',
+	'STATUS_DUPLICATE'		=> 'Duplicate',
+
+	// Table Headers
+	'PROJECT'				=> 'Project',
+	'SEVERITY'				=> 'Severity',
+	'COMPONENT'				=> 'Component',
+	'POSTED'				=> 'Posted',
+	
+	// General Tracker terms
+	'ATTACHMENTS_EXPLAIN'	=> 'You can upload files or images to provide more details about the ticket.',
+	'COLOR'					=> 'Colour',
+	'NAME'					=> 'Name',
+	'NEW'					=> 'New',
+	'PROJECTS'				=> 'Projects',
+	'TICKETS'				=> 'Tickets',
+	'TIMESPAN_TICKETS'		=> 'Tickets by project'
 ]);

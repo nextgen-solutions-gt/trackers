@@ -5,298 +5,374 @@
 
 <h2 class="forum-title">{{ TRACKER_NAME }}</h2>
 
-<div class="action-bar bar-top">
-	{% if not S_IS_BOT %}
-		<a href="{{ U_POST_REPLY_TOPIC }}" class="button" title="{{ lang('REPLY_TICKET') }}">
-			<i class="icon fa-reply fa-fw" aria-hidden="true"></i><span>{{ lang('BUTTON_POST_REPLY') }}</span>
-		</a>
-	{% endif %}
-	
-	{% if S_CAN_CLOSE and not S_CLOSED %}
-		<a href="{{ U_ACTION }}&mode=close" class="button button-secondary" title="{{ lang('CLOSE_TICKET') }}">
-			<i class="icon fa-check-square-o fa-fw" aria-hidden="true"></i><span>{{ lang('CLOSE_TICKET') }}</span>
-		</a>
-	{% endif %}
-	
-	<div class="pagination">
-		{% if pagination|length %}
-			{% include 'pagination.html' %}
-		{% else %}
-			&bull; {{ TOTAL_POSTS }}
-		{% endif %}
-	</div>
-</div>
-
 <div class="row-item">
-	{# COLUMNA DERECHA: EXTRAS #}
-	<div class="extras" style="float: right; width: 25%; margin-left: 1%;">
-		
-		{# PANEL DETALLES #}
-		<div class="panel">
-			<div class="inner">
-				<h3 style="margin-bottom: 10px; font-size: 1.1em;"><i class="icon fa-list-alt fa-fw" aria-hidden="true"></i> {{ lang('TICKET_DETAILS') }}</h3>
-				<ul class="topiclist lists">
-					{% for data in ticket_details %}
-					<li style="padding: 4px 0; border-bottom: 1px solid #eee; font-size: 0.95em;">
-						<span style="font-weight: bold; color: #555; font-size: 0.85em; text-transform: uppercase;">{{ data.NAME }}</span><br>
-						<span class="detail-value" style="color: #333;">{{ data.VALUE }}</span>
-					</li>
-					{% endfor %}
-				</ul>
-			</div>
-		</div>
+    <div class="extras" style="float: right; width: 25%; margin-left: 1%;">
+        
+        <div class="panel">
+            <div class="inner">
+                <h3 style="margin-bottom: 10px; font-size: 1.1em;"><i class="icon fa-list-alt fa-fw" aria-hidden="true"></i> {{ lang('TICKET_DETAILS') }}</h3>
+                <ul class="topiclist lists">
+                    {% for data in ticket_details %}
+                    <li style="padding: 4px 0; border-bottom: 1px solid #eee; font-size: 0.95em;">
+                        <span style="font-weight: bold; color: #555; font-size: 0.85em; text-transform: uppercase;">{{ data.NAME }}</span><br>
+                        <span class="detail-value" style="color: #333;">{{ data.VALUE }}</span>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
 
-		{% if duplicates or duplicates_other %}
-		<div class="panel">
-			<div class="inner">
-				<h3><i class="icon fa-copy fa-fw" aria-hidden="true"></i> {{ lang('DUPLICATE_TICKETS') }}</h3>
-				<ul class="topiclist lists">
-					{% if duplicates %}
-					<li style="font-size: 0.9em; padding-bottom: 5px;">
-						<strong>{{ lang('DUP_TICKET') }}{{ lang('COLON') }}</strong><br>
-						<div style="margin-top: 5px;">
-						{% for dup in duplicates %}
-							<a href="{{ dup.U_TICKET }}" class="button button-secondary btn-sm" style="font-size: 10px; padding: 2px 5px; margin: 2px 0;">#{{ dup.ID }}</a>
-						{% endfor %}
-						</div>
-					</li>
-					{% endif %}
-					{% if duplicates_other %}
-					<li style="font-size: 0.9em; padding-top: 5px; border-top: 1px solid #eee;">
-						<strong>{{ lang('DUP_OTHER') }} #{{ DUPLICATE_ID }}{{ lang('COLON') }}</strong><br>
-						<div style="margin-top: 5px;">
-						{% for dup_other in duplicates_other %}
-							<a href="{{ dup_other.U_TICKET }}" class="button button-secondary btn-sm" style="font-size: 10px; padding: 2px 5px; margin: 2px 0;">#{{ dup_other.ID }}</a>
-						{% endfor %}
-						</div>
-					</li>
-					{% endif %}
-				</ul>
-			</div>
-		</div>
-		{% endif %}
+        {% if duplicates or duplicates_other %}
+        <div class="panel">
+            <div class="inner">
+                <h3><i class="icon fa-copy fa-fw" aria-hidden="true"></i> {{ lang('DUPLICATE_TICKETS') }}</h3>
+                <ul class="topiclist lists">
+                    {% if duplicates %}
+                    <li style="font-size: 0.9em; padding-bottom: 5px;">
+                        <strong>{{ lang('DUP_TICKET') }}{{ lang('COLON') }}</strong><br>
+                        <div style="margin-top: 5px;">
+                        {% for dup in duplicates %}
+                            <a href="{{ dup.U_TICKET }}" class="button button-secondary btn-sm" style="font-size: 10px; padding: 2px 5px; margin: 2px 0;">#{{ dup.ID }}</a>
+                        {% endfor %}
+                        </div>
+                    </li>
+                    {% endif %}
+                    {% if duplicates_other %}
+                    <li style="font-size: 0.9em; padding-top: 5px; border-top: 1px solid #eee;">
+                        <strong>{{ lang('DUP_OTHER') }} #{{ DUPLICATE_ID }}{{ lang('COLON') }}</strong><br>
+                        <div style="margin-top: 5px;">
+                        {% for dup_other in duplicates_other %}
+                            <a href="{{ dup_other.U_TICKET }}" class="button button-secondary btn-sm" style="font-size: 10px; padding: 2px 5px; margin: 2px 0;">#{{ dup_other.ID }}</a>
+                        {% endfor %}
+                        </div>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
 
-		{# PANEL GESTIÓN #}
-		{% if S_CAN_CHANGE_STATUS or S_CAN_ASSIGN %}
-		<div class="panel bg3">
-			<div class="inner">
-				<h3 style="margin-bottom: 10px; font-size: 1.1em;"><i class="icon fa-cogs fa-fw" aria-hidden="true"></i> {{ lang('OPTIONS') }}</h3>
-				
-				<form method="post" action="{{ U_ACTION }}">
-					{% if S_CAN_CHANGE_STATUS %}
-					<fieldset style="margin-bottom: 10px;">
-						<label style="font-weight: bold; text-transform: uppercase;">{{ lang('CHANGE_STATUS') }}</label>
-						<select name="change_status" onchange="this.form.submit();" style="width: 100%; margin-top: 3px;">
-						{% for status in statuses %}
-							<option value="{{ status.ID }}"{% if status.ID == STATUS_ID %} selected="selected"{% endif %}>{{ status.NAME }}</option>
-						{% endfor %}
-						</select>
-					</fieldset>
+        {% if S_CAN_CHANGE_STATUS or S_CAN_ASSIGN %}
+        <div class="panel bg3">
+            <div class="inner">
+                <h3 style="margin-bottom: 10px; font-size: 1.1em;"><i class="icon fa-cogs fa-fw" aria-hidden="true"></i> {{ lang('OPTIONS') }}</h3>
+                
+                <form method="post" action="{{ U_ACTION }}">
+                    {% if S_CAN_CHANGE_STATUS %}
+                    <fieldset style="margin-bottom: 10px;">
+                        <label style="font-weight: bold; text-transform: uppercase;">{{ lang('CHANGE_STATUS') }}</label>
+                        <select name="change_status" onchange="this.form.submit();" style="width: 100%; margin-top: 3px;">
+                        {% for status in statuses %}
+                            <option value="{{ status.ID }}"{% if status.ID == STATUS_ID %} selected="selected"{% endif %}>{{ status.NAME }}</option>
+                        {% endfor %}
+                        </select>
+                    </fieldset>
 
-					<fieldset style="margin-bottom: 15px;">
-						<label style="font-weight: bold; text-transform: uppercase;">{{ lang('CHANGE_SEVERITY') }}</label>
-						<select name="change_severity" onchange="this.form.submit();" style="width: 100%; margin-top: 3px;">
-						{% for severity in severities %}
-							<option value="{{ severity.ID }}" {% if severity.ID == SEVERITY_ID %} selected="selected"{% endif %}>{{ severity.NAME }}</option>
-						{% endfor %}
-						</select>
-					</fieldset>
-					{% endif %}
-					{{ S_HIDDEN_FIELDS }}
-				</form>
+                    <fieldset style="margin-bottom: 15px;">
+                        <label style="font-weight: bold; text-transform: uppercase;">{{ lang('CHANGE_SEVERITY') }}</label>
+                        <select name="change_severity" onchange="this.form.submit();" style="width: 100%; margin-top: 3px;">
+                        {% for severity in severities %}
+                            <option value="{{ severity.ID }}" {% if severity.ID == SEVERITY_ID %} selected="selected"{% endif %}>{{ severity.NAME }}</option>
+                        {% endfor %}
+                        </select>
+                    </fieldset>
+                    {% endif %}
+                    {{ S_HIDDEN_FIELDS }}
+                </form>
 
-				{% if S_CAN_ASSIGN %}
-				<hr style="border-top: 1px dashed #ccc; margin: 15px 0;">
+                {% if S_CAN_ASSIGN %}
+                <hr style="border-top: 1px dashed #ccc; margin: 15px 0;">
 
-				<fieldset>
-					<label style="font-weight: bold; text-transform: uppercase;">{{ lang('ASSIGN_TICKET') }}</label>
-					<p style="font-size: 11px; margin: 5px 0;">
-						{{ lang('CURRENT_ASSIGNED') }}{{ lang('COLON') }} <strong>{{ ASSIGNED_USER_FULL }}</strong>
-					</p>
-					
-				<form method="post" id="viewticket_form" action="{{ U_ACTION }}">
-					<div class="tracker-search-box">
-						<fieldset>
-							<input type="text" name="username" id="username" class="inputbox" placeholder="{{ lang('FIND_USERNAME') }}">
-							<div class="tracker-search-box-buttons">
-								<button type="submit" name="assign_user" class="tracker-button-assign" title="{{ lang('SUBMIT') }}"><i class="icon fa-check fa-fw" aria-hidden="true"></i></button><a href="{{ U_FIND_USER }}" onclick="find_username(this.href); return false;" class="tracker-button-search" title="{{ lang('FIND_USERNAME') }}"><i class="icon fa-search fa-fw" aria-hidden="true"></i></a>
-							</div>
-						</fieldset>
-					</div>
-					{{ S_HIDDEN_FIELDS }}
-				</form>
-				</fieldset>
-				{% endif %}
-			</div>
-		</div>
-		{% endif %}
-	</div>
+                <fieldset>
+                    <label style="font-weight: bold; text-transform: uppercase;">{{ lang('ASSIGN_TICKET') }}</label>
+                    <p style="font-size: 11px; margin: 5px 0;">
+                        {{ lang('CURRENT_ASSIGNED') }}{{ lang('COLON') }} <strong>{{ ASSIGNED_USER_FULL }}</strong>
+                    </p>
+                    
+                <form method="post" id="viewticket_form" action="{{ U_ACTION }}">
+                    <div class="tracker-search-box">
+                        <fieldset>
+                            <input type="text" name="username" id="username" class="inputbox" placeholder="{{ lang('FIND_USERNAME') }}">
+                            <div class="tracker-search-box-buttons">
+                                <button type="submit" name="assign_user" class="tracker-button-assign" title="{{ lang('SUBMIT') }}"><i class="icon fa-check fa-fw" aria-hidden="true"></i></button><a href="{{ U_FIND_USER }}" onclick="find_username(this.href); return false;" class="tracker-button-search" title="{{ lang('FIND_USERNAME') }}"><i class="icon fa-search fa-fw" aria-hidden="true"></i></a>
+                            </div>
+                        </fieldset>
+                    </div>
+                    {{ S_HIDDEN_FIELDS }}
+                </form>
+                </fieldset>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
 
-	{# COLUMNA IZQUIERDA: CONTENIDO TICKET #}
-	<div class="main">
-		
-		<h3 class="ticket-header{% if S_CLOSED %} ticket-closed{% endif %}" style="margin-bottom: 10px; font-size: 1.6em; border-bottom: 2px solid #115098; padding-bottom: 5px;">
-			{% if S_TICKET_PRIVATE %}<i class="icon fa-lock fa-fw" aria-hidden="true" style="color: #bc2a4d;" title="{{ lang('PRIVATE') }}"></i> {% endif %}
-			{% if S_CLOSED %}
-				<span class="badge-status status-closed">{{ lang('CLOSED') }}</span>
-			{% else %}
-				<span class="badge-status status-open">{{ STATUS_NAME }}</span>
+    <div class="main">
+		<div class="ticket-header{% if S_CLOSED %} ticket-closed{% endif %}">
+			{% if S_TICKET_PRIVATE %}
+				<i class="icon fa-lock fa-fw" aria-hidden="true" style="color: #bc2a4d;" title="{{ lang('PRIVATE') }}"></i> 
 			{% endif %}
-			{{ TICKET_TITLE }} 
-		</h3>
+    
+			<span class="ticket-title">{{ TICKET_TITLE }}</span>
 
-		<div id="ticket-box" class="post bg2">
-			<div class="inner">
-				<div class="postbody wide">
-					<ul class="post-buttons">
-						{% if U_EDIT %}
-						<li>
-							<a href="{{ U_EDIT }}" title="{{ lang('EDIT_TICKET') }}" class="button button-icon-only">
-								<i class="icon fa-pencil fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('EDIT') }}</span>
-							</a>
-						</li>
-						{% endif %}
-						{% if U_DELETE %}
-						<li>
-							<a href="{{ U_DELETE }}" title="{{ lang('DELETE') }}" class="button button-icon-only">
-								<i class="icon fa-times fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('DELETE') }}</span>
-							</a>
-						</li>
-						{% endif %}
-					</ul>
-
-					<div class="content">{{ TICKET_TEXT }}</div>
-				</div>
-
-				{% if TICKET_HAS_ATTACHMENTS %}
-				<dl class="attachbox" style="margin-top: 20px; border-color: #eee;">
-					<dt style="font-size: 0.85em; text-transform: uppercase; color: #666;">{{ lang('ATTACHMENTS') }}</dt>
-					{% for attachment in ticket_attachments %}
-						<dd>{{ attachment.DISPLAY_ATTACHMENT|raw }}</dd>
-					{% endfor %}
-				</dl>
-				{% endif %}
-			</div>
-		</div>
-
-		<hr style="margin: 30px 0; border: none; border-bottom: 1px solid #ddd;">
-		<h3 style="font-size: 1.3em; margin-bottom: 15px;"><i class="icon fa-comments-o fa-fw" aria-hidden="true"></i> {{ lang('COMMENTS') }} &amp; {{ lang('HISTORY') }}</h3>
-
-		{% for post in ticket_posts %}
-			{% if post.S_TYPE == 'HISTORY' %}
-				{% if S_CAN_VIEW_LOGS %}
-				<div id="history{{ post.ID }}" class="history-row" style="background: #f9f9f9; border: 1px solid #eee; border-radius: 4px; padding: 8px 15px; margin-bottom: 8px;">
-					<div class="inner">
-						<div class="content history-meta" style="font-size: 0.9em; color: #777;">
-							<i class="icon fa-clock-o fa-fw" aria-hidden="true"></i> <time>{{ post.TIMESTAMP }}</time> &bull; 
-							<span class="username" style="font-weight: 600;">{{ post.USER }}</span>: 
-							<span class="history-text" style="color: #444; font-style: italic;">{{ post.TEXT }}</span>
-						</div>
-					</div>
-				</div>
-				{% endif %}
-			{% else %}
-			<div id="post{{ post.ID }}" class="post {% if post.S_PRIVATE %}reported-private {% endif %}{% if post.S_ROW_COUNT is even %}bg2{% else %}bg1{% endif %}" style="margin-bottom: 15px; border: 1px solid #e1e1e1; border-radius: 4px;">
-				<div class="inner">
-					<div class="postbody wide" style="width: 100%;">
-						<p class="author" style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
-							<a href="#post{{ post.ID }}"><i class="icon fa-file fa-fw icon-lightgray icon-md" aria-hidden="true"></i></a>
-							{{ lang('POSTED_BY') }} <span class="username-coloured" style="font-weight: bold;">{{ post.USER }}</span> &raquo; <time>{{ post.TIMESTAMP }}</time>
-							{% if post.S_PRIVATE %} 
-								<span class="post_private_label" style="background: #bc2a4d; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 5px;"><i class="icon fa-lock fa-fw" aria-hidden="true"></i> {{ lang('PRIVATE') }}</span>
-							{% endif %}
-						</p>
-
-						<ul class="post-buttons comment-buttons" style="top: 10px;">
-							{% if post.U_EDIT %}
-							<li>
-								<a href="{{ post.U_EDIT }}" title="{{ lang('EDIT_COMMENT') }}" class="button button-icon-only">
-									<i class="icon fa-pencil fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('EDIT') }}</span>
-								</a>
-							</li>
-							{% endif %}
-							{% if post.U_DELETE %}
-							<li>
-								<a href="{{ post.U_DELETE }}" title="{{ lang('DELETE') }}" class="button button-icon-only">
-									<i class="icon fa-times fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('DELETE') }}</span>
-								</a>
-							</li>
-							{% endif %}
-						</ul>
-
-						<div class="content" style="color: #444;">{{ post.TEXT }}</div>
-
-						{% if post.attachment|length %}
-						<dl class="attachbox" style="margin-top: 15px; background: #fff;">
-							<dt>{{ lang('ATTACHMENTS') }}</dt>
-							{% for attach in post.attachment %}
-								<dd>{{ attach.DISPLAY_ATTACHMENT|raw }}</dd>
-							{% endfor %}
-						</dl>
-						{% endif %}
-					</div>
-				</div>
-			</div>
-			{% endif %}
-		{% else %}
-		<div class="panel bg1">
-			<div class="inner" style="text-align: center; padding: 20px;">
-				<p class="no-entries" style="color: #888;"><i class="icon fa-info-circle fa-fw" aria-hidden="true"></i> {{ lang('NO_ENTRIES') }}</p>
-			</div>
-		</div>
-		{% endfor %}
-
-		<div class="action-bar bar-bottom">
-			{% if not S_IS_BOT %}
-			<a href="{{ U_POST_REPLY_TOPIC }}" class="button" title="{{ lang('REPLY_TICKET') }}">
-				<i class="icon fa-reply fa-fw" aria-hidden="true"></i><span>{{ lang('BUTTON_POST_REPLY') }}</span>
-			</a>
-			{% endif %}
-			
-			<div class="pagination">
-				{{ TOTAL_POSTS }}
-				{% if pagination|length %}
-					{% include 'pagination.html' %}
+			<span class="ticket-status">
+				{% if S_CLOSED %}
+					({{ lang('CLOSED') }})
 				{% else %}
-					 &bull; {{ PAGE_NUMBER }}
+					({{ STATUS_NAME }})
 				{% endif %}
-			</div>
+			</span>
 		</div>
-<form method="post" action="{U_POST_REPLY_TOPIC}" id="postform" enctype="multipart/form-data">
+
+        <div id="ticket-box" class="post bg2">
+            <div class="inner">
+                <div class="postbody wide">
+                    <ul class="post-buttons">
+                        {% if not S_IS_BOT and S_USER_LOGGED_IN and not S_IS_REPORTED %}
+                        <li>
+                            <a href="{{ U_REPORT }}" title="{{ lang('REPORT_TICKET') }}" class="button button-icon-only">
+                                <i class="icon fa-exclamation-triangle fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('REPORT_TICKET') }}</span>
+                            </a>
+                        </li>
+                        {% endif %}    
+                        {% if U_QUOTE %}
+                        <li>
+                            <a href="{{ U_QUOTE }}" title="{{ lang('QUOTE') }}" class="button button-icon-only">
+                                <i class="icon fa-quote-left fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('QUOTE') }}</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if U_EDIT %}
+                        <li>
+                            <a href="{{ U_EDIT }}" title="{{ lang('EDIT_TICKET') }}" class="button button-icon-only">
+                                <i class="icon fa-pencil fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('EDIT') }}</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        {% if U_DELETE %}
+                        <li>
+                            <a href="{{ U_DELETE }}" title="{{ lang('DELETE') }}" class="button button-icon-only">
+                                <i class="icon fa-times fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('DELETE') }}</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                    </ul>
+
+                    <div class="content">{{ TICKET_TEXT }}</div>
+                </div>
+
+				{% if TICKET_ATTACHMENTS_DISPLAY %}
+					<dl class="attachbox" style="margin-top: 20px; border-color: #eee;">
+						<dt style="font-size: 0.85em; text-transform: uppercase; color: #666;">{{ lang('ATTACHMENTS') }}</dt>
+						{{ TICKET_ATTACHMENTS_DISPLAY|raw }}
+					</dl>
+				{% endif %}
+            </div>
+        </div>
+
+        <hr style="margin: 30px 0; border: none; border-bottom: 1px solid #ddd;">
+			<h3 class="qr-history-title">
+				{{ lang('COMMENTS') }} / {{ lang('HISTORY') }}
+			</h3>
+				{% for post in ticket_posts %}
+					{% if post.S_TYPE == 'HISTORY' %}
+                {% if S_CAN_VIEW_LOGS %}
+				<div id="history{{ post.ID }}" class="history-row history-box">
+					<div class="inner">
+						<div class="content history-meta">
+							<span class="history-icon"><i class="icon fa-file-text fa-fw" aria-hidden="true"></i></span>
+							<span class="history-action">{{ post.TEXT }}</span>
+							<div class="history-details">
+								<span class="username">{{ post.USER }}</span> &raquo; <time>{{ post.TIMESTAMP }}</time>
+							</div>
+						</div>
+					</div>
+				</div>
+                {% endif %}
+            {% else %}
+            <div id="post{{ post.ID }}" class="post {% if post.S_PRIVATE %}reported-private {% endif %}{% if post.S_ROW_COUNT is even %}bg2{% else %}bg1{% endif %}" style="margin-bottom: 15px; border: 1px solid #e1e1e1; border-radius: 4px;">
+                <div class="inner">
+                    <div class="postbody wide" style="width: 100%;">
+                        <p class="author" style="margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;">
+                            <a href="#post{{ post.ID }}"><i class="icon fa-file fa-fw icon-lightgray icon-md" aria-hidden="true"></i></a>
+                            {{ lang('POSTED_BY') }} <span class="username-coloured" style="font-weight: bold;">{{ post.USER }}</span> &raquo; <time>{{ post.TIMESTAMP }}</time>
+                            {% if post.S_PRIVATE %} 
+                                <span class="post_private_label" style="background: #bc2a4d; color: #fff; padding: 1px 6px; border-radius: 3px; font-size: 0.8em; margin-left: 5px;"><i class="icon fa-lock fa-fw" aria-hidden="true"></i> {{ lang('PRIVATE') }}</span>
+                            {% endif %}
+                        </p>
+
+                        <ul class="post-buttons comment-buttons" style="top: 10px;">
+                            {% if post.U_QUOTE %}
+                            <li>
+                                <a href="{{ post.U_QUOTE }}" title="{{ lang('QUOTE') }}" class="button button-icon-only">
+                                    <i class="icon fa-quote-left fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('QUOTE') }}</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if post.U_EDIT %}
+                            <li>
+                                <a href="{{ post.U_EDIT }}" title="{{ lang('EDIT_COMMENT') }}" class="button button-icon-only">
+                                    <i class="icon fa-pencil fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('EDIT') }}</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                            {% if post.U_DELETE %}
+                            <li>
+                                <a href="{{ post.U_DELETE }}" title="{{ lang('DELETE') }}" class="button button-icon-only">
+                                    <i class="icon fa-times fa-fw" aria-hidden="true"></i><span class="sr-only">{{ lang('DELETE') }}</span>
+                                </a>
+                            </li>
+                            {% endif %}
+                        </ul>
+
+                        <div class="content" style="color: #444;">{{ post.TEXT }}</div>
+
+                        {% if post.attachment|length %}
+                        <dl class="attachbox" style="margin-top: 15px; background: #fff;">
+                            <dt>{{ lang('ATTACHMENTS') }}</dt>
+                            {% for attach in post.attachment %}
+                                <dd>{{ attach.DISPLAY_ATTACHMENT|raw }}</dd>
+                            {% endfor %}
+                        </dl>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        {% else %}
+        <div class="panel bg1">
+            <div class="inner" style="text-align: center; padding: 20px;">
+                <p class="no-entries" style="color: #888;"><i class="icon fa-info-circle fa-fw" aria-hidden="true"></i> {{ lang('NO_ENTRIES') }}</p>
+            </div>
+        </div>
+        {% endfor %}
+        <br>
+        <div class="action-bar bar-bottom">
+        {% if S_USER_LOGGED_IN and not S_IS_BOT %}
+            {% if not S_IS_BOT %}
+            <a href="#postform" class="button" title="{{ lang('REPLY_TICKET') }}">
+                <i class="icon fa-reply fa-fw" aria-hidden="true"></i><span>{{ lang('BUTTON_POST_REPLY') }}</span>
+            </a>
+            {% endif %}
+        {% endif %}    
+		
+		<div class="dropdown-container dropdown-button-control topic-tools">
+			<span title="{{ lang('TICKET_TOOLS') }}" class="button button-secondary dropdown-trigger dropdown-select">
+				<i class="icon fa-wrench fa-fw" aria-hidden="true"></i>
+				<span class="caret"><i class="icon fa-sort-down fa-fw" aria-hidden="true"></i></span>
+			</span>
+			<div class="dropdown">
+				<div class="pointer"><div class="pointer-inner"></div></div>
+				<ul class="dropdown-contents">
+					{% if U_WATCH %}
+						<li>
+							<a href="{{ U_WATCH }}" title="{% if S_WATCHING_TICKET %}{{ lang('UNWATCH_TICKET') }}{% else %}{{ lang('WATCH_TICKET') }}{% endif %}" role="menuitem">
+								<i class="icon {% if S_WATCHING_TICKET %}fa-bookmark{% else %}fa-bookmark-o{% endif %} fa-fw" aria-hidden="true"></i><span>{% if S_WATCHING_TICKET %}{{ lang('STOP_WATCHING_TICKET') }}{% else %}{{ lang('WATCH_TICKET') }}{% endif %}</span>
+							</a>
+						</li>
+					{% endif %}
+
+					{% if S_CAN_MODERATE %}
+						{% if S_IS_ASSIGNED %}
+							<li>
+								<a href="{{ U_UNASSIGN }}" title="{{ lang('UNASSIGN_TICKET') }}" role="menuitem">
+									<i class="icon fa-user-times fa-fw" aria-hidden="true"></i><span>{{ lang('UNASSIGN') }}</span>
+								</a>
+							</li>
+						{% endif %}
+
+						<li>
+							<a href="{{ U_MOVE }}" title="{{ lang('MOVE_TICKET') }}" role="menuitem">
+								<i class="icon fa-arrows fa-fw" aria-hidden="true"></i><span>{{ lang('MOVE') }}</span>
+							</a>
+						</li>
+
+						{% if S_CLOSED %}
+							<li>
+								<a href="{{ U_REOPEN }}" title="{{ lang('REOPEN_TICKET') }}" role="menuitem">
+									<i class="icon fa-undo fa-fw" aria-hidden="true"></i><span>{{ lang('REOPEN_TICKET') }}</span>
+								</a>
+							</li>
+						{% endif %}
+					{% endif %}
+
+					{% if S_CAN_CLOSE and not S_CLOSED %}
+						<li class="separator"></li>
+						<li>
+							<a href="{{ U_CLOSE }}" title="{{ lang('CLOSE_TICKET') }}" role="menuitem">
+								<i class="icon fa-check-square-o fa-fw" aria-hidden="true"></i><span>{{ lang('CLOSE_TICKET') }}</span>
+							</a>
+						</li>
+					{% endif %}
+				</ul>
+			</div>
+		</div>		
+            <div class="pagination">
+                {{ TOTAL_POSTS }}
+                {% if pagination|length %}
+                    {% include 'pagination.html' %}
+                {% else %}
+                     &bull; {{ PAGE_NUMBER }}
+                {% endif %}
+            </div>
+        </div>
+		<br>
+		{% if S_USER_LOGGED_IN and not S_IS_BOT %}
+		<form method="post" action="{{ U_POST_REPLY_TOPIC }}" id="postform" enctype="multipart/form-data">
 		<div class="panel">
 			<div class="inner">
 				<div class="content">
 					<fieldset class="fields1">
-						<h2>{L_QUICK_REPLY}</h2>
-						
-						<div id="message-box">
-							<textarea name="message" id="message" rows="8" cols="76" tabindex="4" class="inputbox" placeholder="{L_MESSAGE}"></textarea>
+						<h2 class="quick-reply-header">{{ lang('QUICK_REPLY') }}</h2>
+						{% include 'posting_buttons.html' %}
+
+						<div class="qr-main-layout">
+							<div class="qr-textarea-box">
+								<textarea name="message" id="message" rows="10" tabindex="4" class="inputbox" placeholder="{{ lang('MESSAGE') }}">{{ QUICK_REPLY_TEXT }}</textarea>
+							</div>
+
+							<div id="smiley-box" class="qr-smilies-sidebar">
+								<strong>{{ lang('SMILIES') }}</strong><br />
+								<div class="qr-smilies-grid">
+									{% for smiley_row in smiley %}
+										<a href="#" onclick="insert_text('{{ smiley_row.A_SMILEY_CODE }}', true); return false;">
+											<img src="{{ smiley_row.SMILEY_IMG }}" width="{{ smiley_row.SMILEY_WIDTH }}" height="{{ smiley_row.SMILEY_HEIGHT }}" alt="{{ smiley_row.SMILEY_CODE }}" title="{{ smiley_row.SMILEY_DESC }}" />
+										</a>
+									{% endfor %}
+								</div>
+							</div>
 						</div>
 
-						<div class="attachment-upload" style="margin-top: 10px; padding: 10px; border: 1px dashed #ccc; background: #f9f9f9;">
-							<label for="fileupload"><strong>{L_UPLOAD_ATTACHMENT}{L_COLON}</strong></label><br />
-							<input type="file" name="fileupload" id="fileupload" class="inputbox autowidth" />
-							<p class="description" style="font-size: 0.9em; color: #666;">
-								{L_MAX_ATTACH_SIZE}{L_COLON} {TRACKERS_ATTACH_MAX_SIZE} {L_KIB} | {L_ALLOWED_EXTENSIONS}{L_COLON} {TRACKERS_ATTACH_EXTENSIONS}
-							</p>
+						<div class="qr-attachments-container">
+							<div class="attachment-upload-box">
+								<label for="fileupload"><strong>{{ lang('UPLOAD_ATTACHMENT') }}{{ lang('COLON') }}</strong></label><br />
+								<input type="file" name="fileupload" id="fileupload" class="inputbox autowidth" />
+								<p class="description">
+								<span style="font-size: 0.9em; color: #666;">{{ lang('MAX_ATTACH_SIZE') }}{{ lang('COLON') }} {{ MAX_ATTACH_SIZE }} KiB</span><br />
+								<span style="font-size: 0.9em; color: #666;">{{ lang('ALLOWED_EXTENSIONS') }}{{ lang('COLON') }} {{ ALLOWED_EXT }}</span>
+								</p>
+							</div>
 						</div>
-						{S_FORM_TOKEN}
-						{S_HIDDEN_FIELDS}
+
+						{{ S_FORM_TOKEN }}
+						{{ S_HIDDEN_FIELDS }}
 					</fieldset>
-					
-					<fieldset class="submit-buttons" style="margin-top: 15px;">
-						<input type="submit" name="post" value="{L_SUBMIT}" class="button1" />
+
+					<fieldset class="submit-buttons" style="margin-top: 15px; text-align: center;">
+						<input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
 					</fieldset>
 				</div>
 			</div>
 		</div>
-	</form>	
-	</div> <div style="clear: both;"></div>
+		</form>
+		{% endif %}
+			</div> <div style="clear: both;"></div>
+		</div>
+		{% else %}
+		<div class="rules">
+			<div class="inner">{{ lang('TRACKER_DISABLED') }}</div>
+		</div>
+	{% endif %}
+<br>
 
-</div>
-{% else %}
-	<div class="rules">
-		<div class="inner">{{ lang('TRACKER_DISABLED') }}</div>
-	</div>
-{% endif %}
 {% include 'overall_footer.html' %}

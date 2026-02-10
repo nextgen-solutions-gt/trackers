@@ -90,8 +90,48 @@
         </div>
     </div>
 
-    {# --- PANEL DE ADJUNTOS --- #}
-    {% if S_CAN_ATTACH and not S_EDIT_POST %}
+{% if attach_row %}
+	<div class="panel bg2" id="attach-list">
+		<div class="inner">
+			<fieldset class="fields2">
+				<strong>{{ lang('ATTACHMENTS') }}</strong><br />
+				<span style="font-size: 0.9em; color: #666;">{{ lang('ATTACHMENTS_EXPLAIN') }}</span>
+				
+				<table class="table1 phpbb-attach-table" style="margin-top: 10px;">
+					<thead>
+						<tr>
+							<th>{{ lang('FILENAME') }}</th>
+							<th style="text-align: center;">{{ lang('DELETE') }}</th>
+							<th style="text-align: center;">{{ lang('SIZE') }}</th>
+							<th style="text-align: center;">{{ lang('STATUS') }}</th>
+						</tr>
+					</thead>
+					<tbody>
+					{% for row in attach_row %}
+						<tr class="{% if row.S_ROW_COUNT is odd %}bg1{% else %}bg2{% endif %}">
+							<td>
+								<i class="icon fa-file-o fa-fw" aria-hidden="true"></i> 
+								<span style="font-weight: bold; color: #333;">{{ row.FILENAME }}</span>
+							</td>
+							<td style="text-align: center;">
+								<label style="display: inline-block; cursor: pointer;">
+									<input type="checkbox" name="delete_attach[]" value="{{ row.ATTACH_ID }}" /> {{ lang('DELETE_FILE') }}
+								</label>
+							</td>
+							<td style="text-align: center; white-space: nowrap;">{{ row.FILESIZE }}</td>
+							<td style="text-align: center;">
+								<i class="icon fa-check-circle fa-fw" style="color: #228822;" title="{{ lang('UPLOADED') }}"></i>
+							</td>
+						</tr>
+					{% endfor %}
+					</tbody>
+				</table>
+			</fieldset>
+		</div>
+	</div>
+    {% endif %}
+
+    {% if S_CAN_ATTACH %}
     <div class="panel bg2" id="attachment-panel">
         <div class="inner">
             <fieldset class="fields2">
@@ -109,17 +149,17 @@
     </div>
     {% endif %}
 
-	<div class="panel bg2">
-		<div class="inner">
-			<fieldset class="submit-buttons">
-				<input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
-				<a href="{{ U_BACK_TRACKER }}" class="button2" style="display: inline-block; line-height: 18px; height: 20px; padding: 0 10px; text-decoration: none; box-sizing: border-box; vertical-align: middle;">
-					{{ lang('CANCEL') }}
-				</a>
-				{{ S_FORM_TOKEN }}
-			</fieldset>
-		</div>
-	</div>
+    <div class="panel bg2">
+        <div class="inner">
+            <fieldset class="submit-buttons">
+                <input type="submit" name="post" value="{{ lang('SUBMIT') }}" class="button1" />
+                <a href="{{ U_BACK_TRACKER }}" class="button2" style="display: inline-block; line-height: 18px; height: 20px; padding: 0 10px; text-decoration: none; box-sizing: border-box; vertical-align: middle;">
+                    {{ lang('CANCEL') }}
+                </a>
+                {{ S_FORM_TOKEN }}
+            </fieldset>
+        </div>
+    </div>
 </form>
 
 {% include 'overall_footer.html' %}

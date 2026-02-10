@@ -3,28 +3,24 @@
 {% if S_TRACKER_ENABLED %}
 {% INCLUDECSS '@nextgen_trackers/common.css' %}
 
-	<h2 class="forum-title">{{ TRACKER_NAME }}{{ lang('COLON') }} {{ lang('TRACKER_STATISTICS') }}</h2>
-
-	<div class="panel bg2">
+<div class="extras">
+	<div class="mini-panel panel">
+	<div class="inner">
+		<h3>{{ TRACKER_NAME }}</h3>
+		<ul class="menu">
+			{% for tracker in trackers_stats %}<li><a href="{{ tracker.U_TRACKER_STATS }}">{{ tracker.TRACKER_NAME }}</a></li>{% endfor %}
+		</ul>
+	</div>
+	</div>
+</div>	
+<h2 class="forum-title">{{ TRACKER_NAME }}{{ lang('COLON') }} {{ lang('TRACKER_STATISTICS') }}</h2>
+<div class="main">
+	<div class="panel rules">
 		<div class="inner">
 			{% if STATISTICS_EXPLAIN %}{{ STATISTICS_EXPLAIN }}{% endif %}
 		</div>
 	</div>
 	<br>
-	<div class="action-bar bar-top">
-		<div class="buttons">
-			{% for tracker in trackers_stats %}
-				<a href="{{ tracker.U_TRACKER_STATS }}" class="button button-secondary" title="{{ tracker.TRACKER_NAME }}">
-					<i class="icon fa-file-text-o fa-fw" aria-hidden="true"></i> <span>{{ tracker.TRACKER_NAME }}</span>
-				</a>
-			{% endfor %}
-		</div>
-
-		<div class="pagination">
-			&bull; {{ projects|length }} {{ lang('PROJECTS') }}
-		</div>
-	</div>
-
 	<div class="forabg">
 		<div class="inner">
 			<table class="table1">
@@ -93,16 +89,22 @@
 
 	<div class="action-bar bar-bottom">
 		<div class="buttons">
-			<a href="{{ U_VIEWTRACKER }}" class="button" title="{{ lang('TRACKERS') }}">
-				<i class="icon fa-chevron-left fa-fw" aria-hidden="true"></i> <span>{{ lang('TRACKERS') }}</span>
+			<a href="{{ U_VIEWTRACKER }}" title="{{ lang('TRACKERS') }}">
+				<i class="icon fa-chevron-left fa-fw" aria-hidden="true"></i><span>{{ lang('TRACKERS') }}</span>
 			</a>
-		</div>
-	</div>
 
+		<div class="pagination">
+			&bull; {{ projects|length }} {{ lang('PROJECTS') }}
+		</div>			
+		</div>
+	</div>	
+	<br>
+</div>
 {% else %}
 	<div class="rules">
 		<div class="inner">{{ lang('TRACKER_DISABLED') }}</div>
 	</div>
 {% endif %}
+<br>
 
 {% include 'overall_footer.html' %}

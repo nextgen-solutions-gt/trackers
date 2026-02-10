@@ -10,8 +10,8 @@ services:
         arguments:
             - '%nextgen.trackers.tables.prefix%'
 
-    nextgen.trackers.functions:
-        class: nextgen\trackers\functions
+    nextgen.trackers.includes.functions:
+        class: nextgen\trackers\includes\functions
         arguments:
             - '@auth'
             - '@config'
@@ -49,11 +49,11 @@ services:
             - '@language'
             - '@controller.helper'
             - '@template'
-            - '%core.table_prefix%'
+            - '%nextgen.trackers.tables.prefix%'
         tags:
             - { name: event.listener }
 
-    nextgen.trackers.operator.viewtracker:
+    nextgen.trackers.operators.viewtracker:
         class: nextgen\trackers\operators\viewtracker
         arguments:
             - '@config'
@@ -63,8 +63,9 @@ services:
             - '@request'
             - '@template'
             - '@user'
+            - '%nextgen.trackers.tables.prefix%'
 
-    nextgen.trackers.operator.viewproject:
+    nextgen.trackers.operators.viewproject:
         class: nextgen\trackers\operators\viewproject
         arguments:
             - '@config'
@@ -75,8 +76,9 @@ services:
             - '@request'
             - '@template'
             - '@user'
+            - '%nextgen.trackers.tables.prefix%'
 
-    nextgen.trackers.operator.viewticket:
+    nextgen.trackers.operators.viewticket:
         class: nextgen\trackers\operators\viewticket
         arguments:
             - '@config'
@@ -87,8 +89,9 @@ services:
             - '@request'
             - '@template'
             - '@user'
+            - '%nextgen.trackers.tables.prefix%'
 
-    nextgen.trackers.operator.statistics:
+    nextgen.trackers.operators.statistics:
         class: nextgen\trackers\operators\statistics
         arguments:
             - '@config'
@@ -100,9 +103,9 @@ services:
             - '@template'
             - '@user'
             - '@auth'
-            - '%core.table_prefix%'
+            - '%nextgen.trackers.tables.prefix%'
 
-    nextgen.trackers.operator.posting:
+    nextgen.trackers.operators.posting:
         class: nextgen\trackers\operators\posting
         arguments:
             - '@auth'
@@ -113,26 +116,95 @@ services:
             - '@template'
             - '@user'
             - '@files.upload'
+            - '@log'
             - '%core.root_path%'
             - '%core.php_ext%'
-            - '%core.table_prefix%'
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.operators.moderate:
+        class: nextgen\trackers\operators\moderate
+        arguments:
+            - '@dbal.conn'
+            - '@auth'
+            - '@request'
+            - '@template'
+            - '@controller.helper'
+            - '@language'
+            - '@user'
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.operators.report:
+        class: nextgen\trackers\operators\report
+        arguments:
+            - '@auth'
+            - '@dbal.conn'
+            - '@controller.helper'
+            - '@language'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '@service_container'
+            - '%nextgen.trackers.tables.prefix%'
+
+    nextgen.trackers.operators.my_tickets:
+        class: nextgen\trackers\operators\my_tickets
+        arguments:
+            - '@auth'
+            - '@config'
+            - '@dbal.conn'
+            - '@controller.helper'
+            - '@language'
+            - '@request'
+            - '@template'
+            - '@user'
+            - '%nextgen.trackers.tables.prefix%'
             
     nextgen.trackers.notification.type.ticket_assigned:
         class: nextgen\trackers\notification\type\ticket_assigned
         shared: false
         parent: notification.type.base
         calls:
+            - [set_config, ['@config']]
             - [set_user_loader, ['@user_loader']]
-            - [set_controller_helper, ['@controller.helper']]
+            - [set_helper, ['@controller.helper']]
         tags:
             - { name: notification.type }
-            
+
     nextgen.trackers.notification.type.ticket_reply:
         class: nextgen\trackers\notification\type\ticket_reply
         shared: false
         parent: notification.type.base
         calls:
+            - [set_config, ['@config']]
             - [set_user_loader, ['@user_loader']]
-            - [set_controller_helper, ['@controller.helper']]
+            - [set_helper, ['@controller.helper']]
+        tags:
+            - { name: notification.type }
+
+    nextgen.trackers.notification.type.ticket_reported:
+        class: nextgen\trackers\notification\type\ticket_reported
+        shared: false
+        parent: notification.type.base
+        calls:
+            - [set_config, ['@config']]
+            - [set_helper, ['@controller.helper']]
+        tags:
+            - { name: notification.type }
+
+    nextgen.trackers.notification.type.ticket_update:
+        class: nextgen\trackers\notification\type\ticket_update
+        shared: false
+        arguments:
+            - '@dbal.conn'
+            - '@auth'
+            - '@config'
+            - '@language'
+            - '@controller.helper'
+            - '@user'
+            - '@notification_manager'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+            - '%core.table_prefix%'
+            - '%nextgen.trackers.tables.prefix%'
         tags:
             - { name: notification.type }

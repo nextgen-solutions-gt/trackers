@@ -3,32 +3,29 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
 
 namespace nextgen\trackers;
 
-/**
- * Trackers extension base
- */
 class ext extends \phpbb\extension\base
 {
 	/**
-	 * Verificar si la extensión se puede habilitar
+	 * Check if the extension can be enabled
 	 */
 	public function is_enableable()
 	{
 		$config = $this->container->get('config');
 		$phpbb_check = phpbb_version_compare($config['version'], '3.3.0', '>=');
-		$php_check = version_compare(PHP_VERSION, '7.1.3', '>=');
+		$php_check = version_compare(PHP_VERSION, '8.2.0', '>=');
 
 		return $phpbb_check && $php_check;
 	}
 
 	/**
-	 * Se ejecuta al hacer clic en "Habilitar"
+	 * Runs when you click “Enable.”
 	 */
 	public function enable_step($old_state)
 	{
@@ -37,7 +34,7 @@ class ext extends \phpbb\extension\base
 	}
 
 	/**
-	 * Se ejecuta al hacer clic en "Desactivar"
+	 * Runs when you click “Deactivate.”
 	 */
 	public function disable_step($old_state)
 	{
@@ -46,8 +43,8 @@ class ext extends \phpbb\extension\base
 	}
 
 	/**
-	 * Función auxiliar para activar/desactivar los tipos de notificación
-	 * Esto evita el ServiceNotFoundException sin borrar los datos del usuario.
+	 * Auxiliary function to enable/disable notification types
+     * This prevents ServiceNotFoundException without deleting user data.
 	 */
 	protected function set_notifications_state($state)
 	{
@@ -55,7 +52,9 @@ class ext extends \phpbb\extension\base
 		
 		$types = [
 			'nextgen.trackers.notification.type.ticket_assigned',
-			'nextgen.trackers.notification.type.ticket_reply'
+			'nextgen.trackers.notification.type.ticket_reply',
+			'nextgen.trackers.notification.type.ticket_reported',
+			'nextgen.trackers.notification.type.ticket_update'
 		];
 
 		$sql = 'UPDATE ' . NOTIFICATION_TYPES_TABLE . '

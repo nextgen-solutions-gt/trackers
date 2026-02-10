@@ -3,7 +3,7 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -22,7 +22,7 @@ class m3_add_assigned_user extends \phpbb\db\migration\migration
         return [
             'add_columns' => [
                 $this->table_prefix . 'trackers_ticket' => [
-                    'assigned_user' => ['UINT', 0], // Entero sin signo, por defecto 0 (Sin asignar)
+                    'assigned_user' => ['UINT', 0], // Unsigned integer, default 0 (Unassigned)
                 ],
             ],
         ];

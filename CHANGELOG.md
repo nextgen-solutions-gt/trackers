@@ -1,5 +1,37 @@
 # Changelog - Trackers
 
+## [1.0.0-RC4] - 2026-02-09
+
+### Added
+- **My Tickets Operator**: Full implementation of the `my_tickets` logic to allow users to view their own reported tickets in a centralized list.
+- **User Menu Integration**: Added a direct link to "My Tickets" within the forum's user header menu for registered members.
+- **Ticket Reporting System**: Full implementation of the reporting core, allowing users to flag tickets for moderator review.
+- **Ticket Relocation**: Implemented functionality to move tickets between different trackers.
+- **User Unassignment**: Added the option to unassign a user from a ticket directly from the management interface.
+- **Ticket Subscriptions**: Users can now subscribe to specific tickets to stay updated on progress.
+- **New Notification Types**: 
+  - Notifications for reported tickets (Moderators).
+  - Notifications for updates on subscribed tickets (Users).
+- **UCP/MCP Modules**: 
+  - Added Ticket Subscription management module.
+  - Added Ticket Tracking Report module.
+- **Enhanced Quick Reply**: 
+  - Integrated Smilies support.
+  - Integrated BBCode support.
+- **Interaction Tools**: 
+  - Added "Quote" message button in ticket threads.
+  - Added "Close Ticket" button for authorized users.
+- **Structural Overhaul**: Implemented a new hierarchical Tracker and Project system for better data organization.
+
+### Fixed
+- **Service Container**: Resolved `ServiceNotFoundException` errors by refactoring the dependency injection in `services.yml`.
+- **Notification Persistence**: Fixed issues where orphan notifications would crash the board by implementing a cleaner database purge on extension updates.
+- **Language Loading**: Improved the event listener to ensure `report.php` and `common.php` are loaded across all tracker-related pages.
+
+### Technical Changes
+- **Database Schema**: Updated `phpbb_trackers_ticket` table with `timestamp_created` and `status_id` for better indexing.
+- **PSR-4 Compliance**: Standardized namespaces for notification types to ensure compatibility with Symfony's service container.
+
 ## [1.0.0-RC3] - 2026-02-01
 ### Added
 - **Auto-Sync Stats**: Dashboard now automatically synchronizes ticket counters on page load to ensure data integrity.

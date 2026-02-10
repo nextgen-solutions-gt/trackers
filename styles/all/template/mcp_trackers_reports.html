@@ -1,0 +1,63 @@
+{% include 'mcp_header.html' %}
+
+<form id="mcp_trackers" method="post" action="{{ U_ACTION }}">
+
+<h2>{{ lang('MCP_TRACKERS_TITLE') }}</h2>
+
+<div class="panel">
+	<div class="inner">
+
+	<div class="action-bar bar-top">
+		<div class="pagination">
+			{{ TOTAL_REPORTS }} {{ lang('REPORTS') }} &bull; {{ PAGE_NUMBER }}
+		</div>
+	</div>
+
+	<table class="table1">
+		<thead>
+			<tr>
+				<th class="name">{{ lang('TICKET_TITLE') }}</th>
+				<th class="name">{{ lang('REPORTER') }}</th>
+				<th class="name">{{ lang('REPORT_REASON') }}</th>
+				<th class="center">{{ lang('REPORT_TIME') }}</th>
+				<th class="center">{{ lang('MARK') }}</th>
+			</tr>
+		</thead>
+		<tbody>
+		{% for report in loops.tracker_reports_list %}
+			<tr class="{% if report.S_ROW_COUNT is even %}bg1{% else %}bg2{% endif %}">
+				<td>
+					<a href="{{ report.U_VIEW_TICKET }}" class="topictitle" style="font-weight:bold;">{{ report.TICKET_TITLE }}</a>
+					<br />
+					<span>ID: #{{ report.TICKET_ID }}</span>
+				</td>
+				<td class="center">{{ report.REPORTER }}</td>
+				<td class="center">{{ report.REASON }}</td>
+				<td class="center">{{ report.TIME }}</td>
+				<td class="center">
+					<input type="checkbox" name="report_id_list[]" value="{{ report.REPORT_ID }}" />
+				</td>
+			</tr>
+		{% else %}
+			<tr>
+				<td class="bg1" colspan="5" align="center">
+					{{ lang('NO_REPORTED_TICKETS') }}
+				</td>
+			</tr>
+		{% endfor %}
+		</tbody>
+	</table>
+
+	<div class="action-bar bottom">
+		<div class="display-actions">
+			<input class="button2" type="submit" name="close_report" value="{{ lang('CLOSE_REPORTS') }}" />
+		</div>
+	</div>
+
+	</div>
+</div>
+
+{{ S_FORM_TOKEN }}
+</form>
+
+{% include 'mcp_footer.html' %}

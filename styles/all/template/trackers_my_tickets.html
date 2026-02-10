@@ -1,0 +1,64 @@
+{% include 'overall_header.html' %}
+
+{% if S_TRACKER_ENABLED %}
+{% INCLUDECSS '@nextgen_trackers/common.css' %}
+
+<h2 class="tracker-title">{{ lang('MY_TICKETS') }}</h2>
+
+<div class="forabg">
+	<div class="inner">
+		<table class="table1 tracker-table" id="my-tickets-table" style="table-layout: fixed; width: 100%;">
+			<thead>
+				<tr>
+					<th class="name" style="width: 65%;">{{ lang('TICKET_TITLE') }}</th>
+					<th class="center" style="width: 15%;">{{ lang('STATUS') }}</th>
+					<th class="center" style="width: 20%;">{{ lang('PROJECT') }}</th>
+				</tr>
+			</thead>
+			<tbody>
+			{% for ticket in ticket_row %}
+				<tr class="{% if loop.index is even %}bg1{% else %}bg2{% endif %}">
+					<td class="name" style="overflow: hidden;">
+						<div class="ticket-info-container" style="padding: 5px 0;">
+							<a href="{{ ticket.U_VIEW_TICKET }}" class="topictitle ticket-link" style="display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold;">#{{ ticket.TICKET_ID }} - {{ ticket.TICKET_TITLE }}</a>
+							<div class="ticket-meta" style="font-size: 0.9em; color: #666; margin-top: 3px;">
+								{{ lang('POSTED') }} {{ ticket.TICKET_TIME }} &bull; 
+								<span class="meta-item">{{ ticket.SEVERITY_NAME }}</span> &bull; 
+								<span class="meta-item">{{ ticket.COMPONENT_NAME }}</span>
+							</div>
+						</div>
+					</td>
+					<td class="center" style="vertical-align: middle; text-align: center;">
+						<span class="label status-badge" style="background-color: #{{ ticket.STATUS_COLOR }}; color: #FFFFFF; padding: 3px 8px; border-radius: 4px; display: inline-block; font-size: 0.85em; font-weight: bold; text-transform: uppercase; white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;">
+							{{ ticket.STATUS_NAME }}
+						</span>
+					</td>
+					<td class="center project-name-cell" style="vertical-align: middle; text-align: center; color: #536482; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+						<span>{{ ticket.PROJECT_NAME }}</span>
+					</td>
+				</tr>
+			{% else %}
+				<tr class="bg1">
+					<td colspan="3" class="center" style="padding: 20px; text-align: center;">
+						<strong>{{ lang('NO_TICKETS_FOUND') }}</strong>
+					</td>
+				</tr>
+			{% endfor %}
+			</tbody>
+		</table>
+	</div>
+</div>
+
+<div class="action-bar bottom">
+	<div class="pagination">
+		{{ lang('TOTAL_TICKETS', ticket_row|length) }}
+	</div>
+</div>
+
+{% else %}
+	<div class="rules">
+		<div class="inner">{{ lang('TRACKER_DISABLED') }}</div>
+	</div>
+{% endif %}
+<br>
+{% include 'overall_footer.html' %}

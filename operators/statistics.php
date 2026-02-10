@@ -3,7 +3,7 @@
  *
  * Trackers extension for the phpBB Forum Software package
  *
- * @copyright (c) 2026 nextgen <http://nextgen.gt>
+ * @copyright (c) 2026 nextgen <https://nextgen.gt>
  * @license GNU General Public License, version 2 (GPL-2.0)
  *
  */
@@ -63,25 +63,25 @@ class statistics
         $this->auth = $auth;
 
         $this->tables = [
-            'trackers_tracker'      => $table_prefix . 'trackers_tracker',
-            'trackers_project'      => $table_prefix . 'trackers_project',
-            'trackers_status'       => $table_prefix . 'trackers_status',
-            'trackers_ticket'       => $table_prefix . 'trackers_ticket',
+            'trackers_tracker'      => $table_prefix . 'tracker',
+            'trackers_project'      => $table_prefix . 'project',
+            'trackers_status'       => $table_prefix . 'status',
+            'trackers_ticket'       => $table_prefix . 'ticket',
         ];
     }
 
     public function display()
     {
-        // 1. Verificación inmediata del estado global
+        // 1. Immediate verification of overall status
         $is_enabled = (isset($this->config['trackers_enabled'])) ? (bool) $this->config['trackers_enabled'] : true;
-		
+        
         $tracker_id = $this->request->variable('t', 0);
         $project_id = $this->request->variable('p', 0);
 
-        $functions = $this->container->get('nextgen.trackers.functions');
+        $functions = $this->container->get('nextgen.trackers.includes.functions');
         $tracker = $functions->get_tracker_data($tracker_id);
 
-        // SEGURIDAD: Verificar permiso global de ver tracker (m8)
+        // SECURITY: Verify global permission to view tracker (m8)
         if (!$this->auth->acl_get('u_tracker_view'))
         {
             if ($this->user->data['user_id'] == ANONYMOUS)
@@ -125,13 +125,14 @@ class statistics
         $navlinks = [
             [
                 'FORUM_NAME'    => $tracker['tracker_name'],
-                'U_VIEW_FORUM'    => $this->helper->route('nextgen_trackers_controller', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
+                // RC4 FIX: Use of user-friendly path for breadcrumbs
+                'U_VIEW_FORUM'    => $this->helper->route('nextgen_trackers_page', ['page' => 'viewtracker', 't' => (int) $tracker_id]),
             ],
         ];
 
         $functions->generate_navlinks($navlinks);
 
-        // Tracker statistics (Vista General)
+        // Tracker statistics (Overview)
         if (!$project_id)
         {
             $sql = 'SELECT tracker_id, tracker_name
@@ -141,7 +142,8 @@ class statistics
             {
                 $this->template->assign_block_vars('trackers_stats', [
                     'TRACKER_NAME'        => $row['tracker_name'],
-                    'U_TRACKER_STATS'    => $this->helper->route('nextgen_trackers_controller', ['page' => 'statistics', 't' => (int) $row['tracker_id']]),
+                    // RC4 FIX: Change path to nextgen_trackers_page for statistics
+                    'U_TRACKER_STATS'    => $this->helper->route('nextgen_trackers_page', ['page' => 'statistics', 't' => (int) $row['tracker_id']]),
                 ]);
             }
             $this->db->sql_freeresult($result);
@@ -152,18 +154,18 @@ class statistics
                 'STATISTICS_EXPLAIN'    => $this->language->lang('STATISTICS_TRACKER_EXPLAIN', $tracker['tracker_name'], $this->config['sitename']),
             ]);
 
-            // Las funciones generate_stats internas ya manejan la privacidad mediante is_team_user
+            // Internal generate_stats functions already handle privacy using is_team_user
             $functions->generate_stats('projects', $timespan_start, $timespan_end, $tracker_id);
             $functions->generate_stats('projects_total', 0, 0, $tracker_id);
 
-        // Siempre pasamos el estado habilitado para el HTML
-        $this->template->assign_vars([
-            'S_TRACKER_ENABLED'  => $is_enabled,
-        ]);
-		
+            // We always pass the enabled status for HTML.
+            $this->template->assign_vars([
+                'S_TRACKER_ENABLED'  => $is_enabled,
+            ]);
+        
             return $this->helper->render('statistics_tracker_body.html', $tracker['tracker_name']);
         }
-        // Project statistics (Vista de Proyecto Específico)
+        // Project statistics (Specific Project View)
         else
         {
             $project = $functions->get_project_data($project_id);
@@ -171,7 +173,7 @@ class statistics
             $sql_where = 'project_id = ' . (int) $project_id . '
                 AND timestamp_created BETWEEN ' . (int) $timespan_start . ' AND ' . (int) $timespan_end;
             
-            // SEGURIDAD: Lógica de Privacidad para conteos (m8)
+            // SECURITY: Privacy logic for counts (m8)
             $can_see_private = ($this->auth->acl_get('a_') || $this->auth->acl_getf_global('m_') || $this->auth->acl_get('u_tracker_view_private') || $functions->is_team_user($project_id));
             
             if (!$can_see_private)
@@ -221,21 +223,23 @@ class statistics
                     'S_CLOSED'        => $status['ticket_closed'],
                     'NAME'            => $status['status_name'],
                     'TICKETS'        => $status_tickets,
-                    'U_STATUS_FILTER' => $this->helper->route('nextgen_trackers_controller', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id, 'ticket_status' => (int) $status['status_id']]),
+                    // RC4 FIX: Use of friendly path for status filters
+                    'U_STATUS_FILTER' => $this->helper->route('nextgen_trackers_page', ['page' => 'viewproject', 't' => (int) $tracker_id, 'p' => (int) $project_id, 'ticket_status' => (int) $status['status_id']]),
                 ]);
             }
 
             $this->template->assign_vars([
                 'STATISTICS_EXPLAIN'    => $this->language->lang('STATISTICS_PROJECT_EXPLAIN', $project['project_name'], $this->config['sitename'], $tracker['tracker_name']),
                 'SEARCH_FILTER'        => $search_filter,
-                'U_TRACKER_STATS'    => $this->helper->route('nextgen_trackers_controller', ['page' => 'statistics', 't' => (int) $tracker_id]),
+                // RC4 FIX: Use user-friendly path to return to general statistics
+                'U_TRACKER_STATS'    => $this->helper->route('nextgen_trackers_page', ['page' => 'statistics', 't' => (int) $tracker_id]),
             ]);
 
-        // Siempre pasamos el estado habilitado para el HTML
-        $this->template->assign_vars([
-            'S_TRACKER_ENABLED'  => $is_enabled,
-        ]);
-		
+            // We always pass the enabled status for HTML.
+            $this->template->assign_vars([
+                'S_TRACKER_ENABLED'  => $is_enabled,
+            ]);
+        
             return $this->helper->render('statistics_project_body.html', $project['project_name']);
         }
     }
